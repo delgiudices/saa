@@ -1,0 +1,5 @@
+C:\Users\dawmu\Documents\saa\src\SAA.Core\SAA.Core\bin\Debug\SAA.Core.dll
+C:\Users\dawmu\Documents\saa\src\SAA.Core\SAA.Core\bin\Debug\SAA.Core.pdb
+C:\Users\dawmu\Documents\saa\src\SAA.Core\SAA.Core\obj\Debug\SAA.Core.csprojResolveAssemblyReference.cache
+C:\Users\dawmu\Documents\saa\src\SAA.Core\SAA.Core\obj\Debug\SAA.Core.dll
+C:\Users\dawmu\Documents\saa\src\SAA.Core\SAA.Core\obj\Debug\SAA.Core.pdb
