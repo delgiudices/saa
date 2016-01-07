@@ -1,0 +1,6 @@
+C:\Users\dawmu\Documents\saa\src\SAA.Core\SAA.Web\bin\SAA.Web.dll.config
+C:\Users\dawmu\Documents\saa\src\SAA.Core\SAA.Web\bin\SAA.Web.dll
+C:\Users\dawmu\Documents\saa\src\SAA.Core\SAA.Web\bin\SAA.Web.pdb
+C:\Users\dawmu\Documents\saa\src\SAA.Core\SAA.Web\obj\Debug\SAA.Web.dll
+C:\Users\dawmu\Documents\saa\src\SAA.Core\SAA.Web\obj\Debug\SAA.Web.pdb
+C:\Users\dawmu\Documents\saa\src\SAA.Core\SAA.Web\obj\Debug\SAA.Web.csprojResolveAssemblyReference.cache
