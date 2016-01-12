@@ -6,36 +6,101 @@
     <title>SAA - Ejecutar Viaje</title>
     <link href="Content/bootstrap.min.css" rel="stylesheet" />
     <link href="Content/bootstrap-theme.min.css" rel="stylesheet" />
+    <style type="text/css">
+        #travels {
+            margin-top: 5%;
+        }
+
+        .withTopMargin {
+            margin-top: 5%;
+        }
+
+        .travelPanel {
+            border: 1px solid gray;
+            width: 100%;
+            height: 500px;
+        }
+
+        .weirdAmount {
+            width: 30%;
+        }
+    </style>
 </head>
 <body>
-    <h1>Ejecutar Viaje</h1>
-
-    <div id="container">
-        <form method="post" role="form">
-            <label for="articulo">Artículo</label>
-            <input type="text" placeholder="Escribir código de artículo aquí..." />
-            <button type="button">Agregar Artículo</button>
-            <div class="row">
-                <div class="panel panel-default col-md-6">
-                    <div class="panel-body">
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox">
-                            </label>
+    <div class="container-fluid">
+        <h2>Ejecutar Viaje</h2>
+        <div class="row">
+            <div class="col-md-3">
+                <form method="post" role="form">
+                    <div class="row" data-bind="with: toAddModel ">
+                        <div class="form-group col-md-8">
+                            <label for="articulos">Artículo</label>
+                            <input type="text" class="form-control twitter-typeahead" id="articulos" placeholder="Buscar código" autocomplete="off" autofocus="autofocus">
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="cantidad">&nbsp;</label>
+                            <input type="number" class="form-control" id="cantidad" data-bind="value: amount">
                         </div>
                     </div>
-                </div>
+                    <div class="row clearfix">
+                        <div class="col-md-12">
+                            <button type="button" class="btn btn-primary" data-bind="click: addArticle">Agregar Artículo</button>
+                        </div>
+                    </div>
+                    <div class="row form-inline withTopMargin" data-bind="visible: actionsVisible">
+                        <div class="col-md-12">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" data-bind="click: selectAll"> Select All
+                                </label>
+                            </div>
+                            <button class="btn btn-danger" data-bind="click: deleteSelected">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div data-bind="foreach: travels" id="travels">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div>
+                                    <div class="panel panel-default">
+                                        <div class="panel-body">
+                                            <input type="checkbox" data-bind="checked: selected">
+                                            <span data-bind="text: id"></span> -
+                                            <span data-bind="text: description"></span> -
+                                            <span data-bind="text: articleNodeName"></span>
+                                            <input type="number" data-bind="value: amount" class="weirdAmount" />
+                                            <button type="button" class="close" aria-label="Close" data-bind="click: $root.deleteArticle">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-success">Ejecutar Viaje</button>
+                    <button type="button" class="btn btn-default">Guardar Configuración</button>
+                </form>
             </div>
+            <div class="col-md-9">
+                <div class="travelPanel"></div>
+            </div>
+        </div>
 
-            <button type="button" class="btn btn-success">Ejecutar Viaje</button>
-            <button type="button" class="btn btn-primary">Guardar Configuración</button>
-        </form>
     </div>
-
-    <script src="Scripts/jquery-2.1.4.min.js"></script>
+    <!-- Dependecies -->
+    <script src="Scripts/jquery-2.2.0.min.js"></script>
+    <script src="Scripts/linq.min.js"></script>
+    <script src="Scripts/jquery.linq.min.js"></script>
     <script src="Scripts/bootstrap.min.js"></script>
     <script src="Scripts/knockout-3.4.0.js"></script>
+    <script src="Scripts/handlebars.min.js"></script>
+    <script src="Scripts/typeahead.bundle.min.js"></script>
     <script src="Scripts/jaydata.min.js"></script>
     <script src="Scripts/jaydatamodules/knockout.min.js"></script>
+    <!-- Dependecies -->
+
+    <script src="Scripts/core.js"></script>
 </body>
 </html>

@@ -6,3 +6,11 @@ C:\Users\dawmu\Documents\saa\src\SAA.Core\SAA.ConsoleApp\bin\Debug\SAA.Core.pdb
 C:\Users\dawmu\Documents\saa\src\SAA.Core\SAA.ConsoleApp\obj\Debug\SAA.ConsoleApp.csprojResolveAssemblyReference.cache
 C:\Users\dawmu\Documents\saa\src\SAA.Core\SAA.ConsoleApp\obj\Debug\SAA.ConsoleApp.exe
 C:\Users\dawmu\Documents\saa\src\SAA.Core\SAA.ConsoleApp\obj\Debug\SAA.ConsoleApp.pdb
+C:\Users\dawmu\Documents\saa\src\SAA.ConsoleApp\bin\Debug\SAA.ConsoleApp.exe.config
+C:\Users\dawmu\Documents\saa\src\SAA.ConsoleApp\bin\Debug\SAA.ConsoleApp.exe
+C:\Users\dawmu\Documents\saa\src\SAA.ConsoleApp\bin\Debug\SAA.ConsoleApp.pdb
+C:\Users\dawmu\Documents\saa\src\SAA.ConsoleApp\bin\Debug\SAA.Core.dll
+C:\Users\dawmu\Documents\saa\src\SAA.ConsoleApp\bin\Debug\SAA.Core.pdb
+C:\Users\dawmu\Documents\saa\src\SAA.ConsoleApp\obj\Debug\SAA.ConsoleApp.csprojResolveAssemblyReference.cache
+C:\Users\dawmu\Documents\saa\src\SAA.ConsoleApp\obj\Debug\SAA.ConsoleApp.exe
+C:\Users\dawmu\Documents\saa\src\SAA.ConsoleApp\obj\Debug\SAA.ConsoleApp.pdb
