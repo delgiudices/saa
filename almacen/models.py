@@ -20,6 +20,7 @@ class Nodo(models.Model):
     almacen = models.ForeignKey(Almacen)
     tipo = models.CharField(choices=choices, max_length=80)
     articulos = models.ManyToManyField('Articulo', through='Nodo_Articulo')
+    nodos = models.ManyToManyField('Nodo', through='Camino')
 
 
 class Articulo(models.Model):
@@ -35,6 +36,13 @@ class Nodo_Articulo(models.Model):
     nodo = models.ForeignKey(Nodo)
     articulo = models.ForeignKey(Articulo)
     cantidad = models.PositiveIntegerField()
+
+
+class Camino(models.Model):
+
+    desde = models.ForeignKey(Nodo, related_name='desde')
+    hasta = models.ForeignKey(Nodo, related_name='hasta')
+    distancia = models.PositiveIntegerField()
 
 
 class Robot(models.Model):
