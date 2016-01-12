@@ -15,7 +15,14 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from rest_framework import routers
+from almacen import views
+
+router = routers.DefaultRouter()
+router.register(r'almacenes', views.AlmacenViewSet)
+router.register(r'nodos', views.NodoViewSet)
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
+    url('^', include(router.urls))
 ]
