@@ -1,16 +1,9 @@
 ﻿$(function () {
-
     var articulosModel = [
         { id: 1, description: "test1", node: "A1" },
         { id: 2, description: "test2", node: "A1" },
         { id: 3, description: "test3", node: "A2" }
     ];
-
-    var articulos = new Bloodhound({
-        datumTokenizer: Bloodhound.tokenizers.obj.whitespace("description"),
-        queryTokenizer: Bloodhound.tokenizers.whitespace,
-        local: articulosModel
-    });
 
     function travelDescriptionViewModel(model) {
         var self = this;
@@ -65,35 +58,24 @@
             return self.travels().length > 0;
         });
 
-        self.deleteSelected = function () {
-            var toRemove = Enumerable.From(self.travels()).Where(function (a) {
+        self.deleteSelectedVisible = ko.computed(function () {
+            return Enumerable.From(self.travels()).Any(function (a) {
                 return a.selected();
             });
-            toRemove.ForEach(function (a) {
-                self.travels.remove(a);
+        });
+
+        self.deleteSelected = function () {
+            self.travels.remove(function (a) {
+                return a.selected();
             });
         }
 
-        $("#articulos").typeahead(null,
-        {
-            name: 'articulos',
-            display: 'description',
-            source: articulos,
-            limit: 10,
-            templates: {
-                empty: [
-                    '<div class="empty-message">',
-                    'No se pudó encontrar el artículo',
-                    '</div>'
-                ].join('\n'),
-                suggestion: Handlebars.compile('<div><strong>{{description}}</strong> – {{id}}</div>')
-            }
-        }).bind('typeahead:select', function (ev, article) {
-            self.toAddModel().article(article);
-            $("#cantidad").focus();
-        });
+        self.articles = ko.observableArray(articulosModel);
+
+        self.spec = {
+        };
+
     }
 
     ko.applyBindings(new viewModel());
-    $("#articulos").focus();
 });

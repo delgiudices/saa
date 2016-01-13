@@ -6,6 +6,7 @@
     <title>SAA - Ejecutar Viaje</title>
     <link href="Content/bootstrap.min.css" rel="stylesheet" />
     <link href="Content/bootstrap-theme.min.css" rel="stylesheet" />
+    <link href="Content/css/select2.min.css" rel="stylesheet" />
     <style type="text/css">
         #travels {
             margin-top: 5%;
@@ -15,14 +16,16 @@
             margin-top: 5%;
         }
 
-        .travelPanel {
+        .weirdAmount {
+            width: 30%;
+        }
+
+        .storeMap {
+            background-image: url('Content/imgs/floor.jpg');
+            background-repeat: repeat;
             border: 1px solid gray;
             width: 100%;
             height: 500px;
-        }
-
-        .weirdAmount {
-            width: 30%;
         }
     </style>
 </head>
@@ -35,10 +38,10 @@
                     <div class="row" data-bind="with: toAddModel ">
                         <div class="form-group col-md-8">
                             <label for="articulos">Artículo</label>
-                            <input type="text" class="form-control twitter-typeahead" id="articulos" placeholder="Buscar código" autocomplete="off" autofocus="autofocus">
+                            <select class="form-control" autofocus="autofocus" id="articulos" data-bind="options: $root.articles, value: article, optionsText: 'description', select2: $root.spec"></select>
                         </div>
                         <div class="form-group col-md-4">
-                            <label for="cantidad">&nbsp;</label>
+                            <label for="cantidad">Cantidad</label>
                             <input type="number" class="form-control" id="cantidad" data-bind="value: amount">
                         </div>
                     </div>
@@ -54,7 +57,7 @@
                                     <input type="checkbox" data-bind="click: selectAll"> Select All
                                 </label>
                             </div>
-                            <button class="btn btn-danger" data-bind="click: deleteSelected">
+                            <button class="btn btn-danger" data-bind="click: deleteSelected, visible: deleteSelectedVisible">
                                 Delete
                             </button>
                         </div>
@@ -79,12 +82,12 @@
                             </div>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-success">Ejecutar Viaje</button>
-                    <button type="button" class="btn btn-default">Guardar Configuración</button>
+                    <button type="button" class="btn btn-success" data-bind="visible: actionsVisible">Ejecutar Viaje</button>
+                    <button type="button" class="btn btn-default" data-bind="visible: actionsVisible">Guardar Configuración</button>
                 </form>
             </div>
             <div class="col-md-9">
-                <div class="travelPanel"></div>
+                <div class="storeMap"></div>
             </div>
         </div>
 
@@ -95,8 +98,8 @@
     <script src="Scripts/jquery.linq.min.js"></script>
     <script src="Scripts/bootstrap.min.js"></script>
     <script src="Scripts/knockout-3.4.0.js"></script>
-    <script src="Scripts/handlebars.min.js"></script>
-    <script src="Scripts/typeahead.bundle.min.js"></script>
+    <script src="Scripts/select2.min.js"></script>
+    <script src="Scripts/knockout-select2.min.js"></script>
     <script src="Scripts/jaydata.min.js"></script>
     <script src="Scripts/jaydatamodules/knockout.min.js"></script>
     <!-- Dependecies -->

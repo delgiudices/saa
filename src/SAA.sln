@@ -3,10 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SAA.Core", "SAA.Core\SAA.Core.csproj", "{83D4C28C-7AE1-4838-B1C6-A53FA4F8703E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SAA.ConsoleApp", "SAA.ConsoleApp\SAA.ConsoleApp.csproj", "{4B1446B2-C562-490B-A593-35B61983D336}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SAA.Web", "SAA.Web\SAA.Web.csproj", "{13DB12F8-5CF8-48BD-A4A7-8B1D5B0330BE}"
 EndProject
 Global
@@ -15,14 +11,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{83D4C28C-7AE1-4838-B1C6-A53FA4F8703E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{83D4C28C-7AE1-4838-B1C6-A53FA4F8703E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{83D4C28C-7AE1-4838-B1C6-A53FA4F8703E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{83D4C28C-7AE1-4838-B1C6-A53FA4F8703E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4B1446B2-C562-490B-A593-35B61983D336}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4B1446B2-C562-490B-A593-35B61983D336}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4B1446B2-C562-490B-A593-35B61983D336}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4B1446B2-C562-490B-A593-35B61983D336}.Release|Any CPU.Build.0 = Release|Any CPU
 		{13DB12F8-5CF8-48BD-A4A7-8B1D5B0330BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{13DB12F8-5CF8-48BD-A4A7-8B1D5B0330BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13DB12F8-5CF8-48BD-A4A7-8B1D5B0330BE}.Release|Any CPU.ActiveCfg = Release|Any CPU

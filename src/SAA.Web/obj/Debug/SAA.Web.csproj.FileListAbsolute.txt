@@ -7,10 +7,6 @@ C:\Users\dawmu\Documents\saa\src\SAA.Core\SAA.Web\obj\Debug\SAA.Web.csprojResolv
 C:\Users\dawmu\Documents\saa\src\SAA.Web\bin\SAA.Web.dll.config
 C:\Users\dawmu\Documents\saa\src\SAA.Web\bin\SAA.Web.dll
 C:\Users\dawmu\Documents\saa\src\SAA.Web\bin\SAA.Web.pdb
-C:\Users\dawmu\Documents\saa\src\SAA.Web\bin\Newtonsoft.Json.dll
-C:\Users\dawmu\Documents\saa\src\SAA.Web\bin\Speedy.dll
-C:\Users\dawmu\Documents\saa\src\SAA.Web\bin\Newtonsoft.Json.xml
-C:\Users\dawmu\Documents\saa\src\SAA.Web\bin\Speedy.pdb
 C:\Users\dawmu\Documents\saa\src\SAA.Web\obj\Debug\SAA.Web.csprojResolveAssemblyReference.cache
 C:\Users\dawmu\Documents\saa\src\SAA.Web\obj\Debug\SAA.Web.dll
 C:\Users\dawmu\Documents\saa\src\SAA.Web\obj\Debug\SAA.Web.pdb
