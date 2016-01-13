@@ -1,16 +1,10 @@
 ﻿$(function () {
-    var articulosModel = [
-        { id: 1, description: "test1", node: "A1" },
-        { id: 2, description: "test2", node: "A1" },
-        { id: 3, description: "test3", node: "A2" }
-    ];
-
     function travelDescriptionViewModel(model) {
         var self = this;
         self.selected = ko.observable();
-        self.id = ko.observable(model.article().id);
-        self.description = ko.observable(model.article().description);
-        self.articleNodeName = ko.observable(model.article().node);
+        self.id = ko.observable(model.article()[0].data.pk);
+        self.description = ko.observable(model.article()[0].data.nombre);
+        self.articleNodeName = ko.observable(model.article()[0].node);
         self.amount = ko.observable(model.amount());
     }
 
@@ -25,22 +19,23 @@
         self.travels = ko.observableArray();
 
         self.toAddModel = ko.observable(new toAddModel());
+
         self.addArticle = function () {
             var arts = Enumerable.From(self.travels());
             if (arts.Any(function (a) {
-                return a.id() === self.toAddModel().article().id;
+                return a.id() === self.toAddModel().article()[0].data.pk;
             })) {
                 var ar = arts.Single(function (a) {
-                    return a.id() === self.toAddModel().article().id;
+                    return a.id() === self.toAddModel().article()[0].data.pk;
                 });
                 ar.amount(parseInt(ar.amount()) + parseInt(self.toAddModel().amount()));
             } else {
                 self.travels.push(new travelDescriptionViewModel(self.toAddModel()));
             }
             self.toAddModel().article(null);
-            self.toAddModel().amount({});
-            $("#articulos").val("");
-            $("#articulos").focus();
+            self.toAddModel().amount(null);
+            $("#articulo").val(null).trigger("change");;
+            $("#articulo").focus();
         }
 
         self.deleteArticle = function (vm) {
@@ -70,14 +65,30 @@
             });
         }
 
-        self.articles = ko.observableArray(articulosModel);
-
         self.spec = {
-            tags: true,
-            placeholder: "Seleccione un artículo...",
-
+            ajax: {
+                url: '/articulos/',
+                dataType: 'json',
+                delay: 250,
+                processResults: function (data, page) {
+                    return {
+                        results: $.map(data, function (item) {
+                            return { id: item.pk, text: item.nombre, data: item };
+                        })
+                    };
+                }
+            },
+            allowClear: true,
+            minimumInputLength: 1,
+            placeholder: "Seleccionar un artículo",
+            templateResult: function (item) {
+                return item.text;
+            },
+            templateSelection: function (item) {
+                return item.text;
+            },
+            escapeMarkup: function (markup) { return markup; }
         };
-
     }
 
     ko.applyBindings(new viewModel());

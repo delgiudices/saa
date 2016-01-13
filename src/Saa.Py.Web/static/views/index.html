@@ -5,8 +5,9 @@
     <meta charset="utf-8" />
     <title>SAA - Ejecutar Viaje</title>
     <link href="bootstrap.min.css" rel="stylesheet" />
-    <link href="bootstrap-theme.min.css" rel="stylesheet" />
+    <link href="bootstrap-theme.min.css" rel="stylesheet"/>
     <link href="css/select2.min.css" rel="stylesheet" />
+    <link href="css/select2-bootstrap.min.css" rel="stylesheet" />
     <style type="text/css">
         #travels {
             margin-top: 5%;
@@ -37,11 +38,11 @@
                 <form method="post" role="form">
                     <div class="row" data-bind="with: toAddModel ">
                         <div class="form-group col-md-8">
-                            <label for="articulos">Artículo</label>
-                            <select class="form-control" autofocus="autofocus" id="articulos" data-bind="options: $root.articles, value: article, optionsText: 'description', select2: $root.spec"></select>
+                            <label for="articulo" class="control-label">Artículo</label>
+                            <select type="text" class="form-control"  autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="articulo" data-bind="select2Data: article, select2: $root.spec, optionsText: 'nombre'" ></select>
                         </div>
                         <div class="form-group col-md-4">
-                            <label for="cantidad">Cantidad</label>
+                            <label for="cantidad" class="control-label">Cantidad</label>
                             <input type="number" class="form-control" id="cantidad" data-bind="value: amount">
                         </div>
                     </div>

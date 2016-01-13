@@ -49,6 +49,7 @@
     <Compile Include="saa\wsgi.py" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="bundleconfig.json" />
     <Content Include="requirements.txt" />
     <Content Include="static\Content\bootstrap-theme.css" />
     <Content Include="static\Content\bootstrap-theme.css.map" />
@@ -58,6 +59,8 @@
     <Content Include="static\Content\bootstrap.css.map" />
     <Content Include="static\Content\bootstrap.min.css" />
     <Content Include="static\Content\bootstrap.min.css.map" />
+    <Content Include="static\Content\css\select2-bootstrap.css" />
+    <Content Include="static\Content\css\select2-bootstrap.min.css" />
     <Content Include="static\Content\css\select2.css" />
     <Content Include="static\Content\css\select2.min.css" />
     <Content Include="static\Content\imgs\floor.jpg" />
