@@ -49,17 +49,6 @@
     <Compile Include="saa\wsgi.py" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="almacen\.models.py.swp" />
-    <Content Include="almacen\.serializers.py.swp" />
-    <Content Include="almacen\.views.py.swp" />
-    <Content Include="almacen\admin.pyc" />
-    <Content Include="almacen\migrations\0001_initial.pyc" />
-    <Content Include="almacen\migrations\0002_auto_20160112_1812.pyc" />
-    <Content Include="almacen\migrations\__init__.pyc" />
-    <Content Include="almacen\models.pyc" />
-    <Content Include="almacen\serializers.pyc" />
-    <Content Include="almacen\views.pyc" />
-    <Content Include="almacen\__init__.pyc" />
     <Content Include="requirements.txt" />
   </ItemGroup>
   <ItemGroup>
