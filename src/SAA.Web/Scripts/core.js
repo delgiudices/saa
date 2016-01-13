@@ -73,6 +73,9 @@
         self.articles = ko.observableArray(articulosModel);
 
         self.spec = {
+            tags: true,
+            placeholder: "Seleccione un artículo...",
+
         };
 
     }
