@@ -16,6 +16,7 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib import admin
 from rest_framework import routers
+from django.views.generic import TemplateView
 from almacen import views
 
 router = routers.DefaultRouter()
@@ -28,5 +29,7 @@ router.register(r'caminos', views.CaminoViewSet)
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url('^', include(router.urls))
+    url('^', include(router.urls)),
+    #static page
+    url(r'^$', TemplateView.as_view(template_name="./views/index.html"), name='homepage'),
 ]

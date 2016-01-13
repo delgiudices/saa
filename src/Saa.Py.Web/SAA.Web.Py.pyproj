@@ -50,10 +50,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="requirements.txt" />
+    <Content Include="static\index.html" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="almacen\" />
     <Folder Include="almacen\migrations\" />
+    <Folder Include="static\" />
     <Folder Include="saa\" />
   </ItemGroup>
   <ItemGroup>
