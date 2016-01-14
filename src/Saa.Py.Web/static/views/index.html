@@ -7,93 +7,99 @@
     <link href="bootstrap.min.css" rel="stylesheet" />
     <link href="bootstrap-theme.min.css" rel="stylesheet"/>
     <link href="css/select2.min.css" rel="stylesheet" />
-    <link href="css/select2-bootstrap.min.css" rel="stylesheet" />
+    <link href="css/select2-bootstrap.min.css" rel="stylesheet">
     <style type="text/css">
-        #travels {
-            margin-top: 5%;
-        }
+    #travels {
+        margin-top: 5%;
+    }
 
-        .withTopMargin {
-            margin-top: 5%;
-        }
+    .withTopMargin {
+        margin-top: 5%;
+    }
 
-        .weirdAmount {
-            width: 30%;
-        }
+    .weirdAmount {
+        width: 30%;
+    }
 
-        .storeMap {
-            background-image: url('imgs/floor.jpg');
-            background-repeat: repeat;
-            border: 1px solid gray;
-            width: 100%;
-            height: 500px;
-        }
-    </style>
+    #canvas {
+        /*NEVER SET WIDTH AND HEIGHT HERE, AT LEAST YOU THAT U KNOW REALLY WHAT UR DOING*/
+        border: 1px solid black;
+    }
+</style>
 </head>
 <body>
-    <div class="container-fluid">
-        <h2>Ejecutar Viaje</h2>
-        <div class="row">
-            <div class="col-md-3">
-                <form method="post" role="form">
-                    <div class="row" data-bind="with: toAddModel ">
-                        <div class="form-group col-md-8">
-                            <label for="articulo" class="control-label">Artículo</label>
-                            <select type="text" class="form-control"  autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="articulo" data-bind="select2Data: article, select2: $root.spec, optionsText: 'nombre'" ></select>
-                        </div>
-                        <div class="form-group col-md-4">
-                            <label for="cantidad" class="control-label">Cantidad</label>
-                            <input type="number" class="form-control" id="cantidad" data-bind="value: amount">
-                        </div>
+<div class="container-fluid">
+    <h2>Ejecutar Viaje</h2>
+    <div class="row">
+        <div class="col-md-3">
+            <form method="post" role="form">
+                <div class="row" data-bind="with: toAddModel ">
+                    <div class="form-group col-md-8">
+                        <label for="articulo" class="control-label">Artículo</label>
+                        <select type="text" class="form-control" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="articulo" data-bind="select2Data: article, select2: $root.spec, optionsText: 'nombre'"></select>
                     </div>
-                    <div class="row clearfix">
+                    <div class="form-group col-md-4">
+                        <label for="cantidad" class="control-label">Cantidad</label>
+                        <input type="number" class="form-control" id="cantidad" data-bind="value: amount">
+                    </div>
+                </div>
+                <div class="row clearfix">
+                    <div class="col-md-12">
+                        <button type="button" class="btn btn-primary" data-bind="click: addArticle">Agregar Artículo</button>
+                    </div>
+                </div>
+                <div class="row form-inline withTopMargin" data-bind="visible: actionsVisible">
+                    <div class="col-md-12">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" data-bind="click: selectAll"> Select All
+                            </label>
+                        </div>
+                        <button class="btn btn-danger" data-bind="click: deleteSelected, visible: deleteSelectedVisible">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+                <div data-bind="foreach: travels" id="travels">
+                    <div class="row">
                         <div class="col-md-12">
-                            <button type="button" class="btn btn-primary" data-bind="click: addArticle">Agregar Artículo</button>
-                        </div>
-                    </div>
-                    <div class="row form-inline withTopMargin" data-bind="visible: actionsVisible">
-                        <div class="col-md-12">
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox" data-bind="click: selectAll"> Select All
-                                </label>
-                            </div>
-                            <button class="btn btn-danger" data-bind="click: deleteSelected, visible: deleteSelectedVisible">
-                                Delete
-                            </button>
-                        </div>
-                    </div>
-                    <div data-bind="foreach: travels" id="travels">
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div>
-                                    <div class="panel panel-default">
-                                        <div class="panel-body">
-                                            <input type="checkbox" data-bind="checked: selected">
-                                            <span data-bind="text: id"></span> -
-                                            <span data-bind="text: description"></span> -
-                                            <span data-bind="text: articleNodeName"></span>
-                                            <input type="number" data-bind="value: amount" class="weirdAmount" />
-                                            <button type="button" class="close" aria-label="Close" data-bind="click: $root.deleteArticle">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
-                                        </div>
+                            <div>
+                                <div class="panel panel-default">
+                                    <div class="panel-body">
+                                        <input type="checkbox" data-bind="checked: selected">
+                                        <span data-bind="text: id"></span> -
+                                        <span data-bind="text: description"></span> -
+                                        <span data-bind="text: articleNodeName"></span>
+                                        <input type="number" data-bind="value: amount" class="weirdAmount"/>
+                                        <button type="button" class="close" aria-label="Close" data-bind="click: $root.deleteArticle">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-success" data-bind="visible: actionsVisible">Ejecutar Viaje</button>
-                    <button type="button" class="btn btn-default" data-bind="visible: actionsVisible">Guardar Configuración</button>
-                </form>
-            </div>
-            <div class="col-md-9">
-                <div class="storeMap"></div>
-            </div>
+                </div>
+                <button type="button" class="btn btn-success" data-bind="visible: actionsVisible">Ejecutar Viaje</button>
+                <button type="button" class="btn btn-default" data-bind="visible: actionsVisible">Guardar Configuración</button>
+            </form>
         </div>
-
+        <div class="col-md-9">
+            <div class="row">
+                <div class="col-md-12">
+                    <i class="glyphicon glyphicon-record" data-bind="click: canvas.addNodeClick"></i>
+                    <i class="glyphicon glyphicon-resize-vertical" data-bind="click: canvas.connectionModeClick"></i>
+                </div>
+            </div>
+            <canvas class="storeMap" id="canvas" width="950px" height="400px">
+                Your navigator doesn't support canvas :(
+            </canvas>
+        </div>
     </div>
-    <!-- Dependecies -->
+</div>
+    <img src="point.png" id="node" style="display: none" />
+
+<!-- Dependecies -->
     <script src="jquery-2.2.0.min.js"></script>
     <script src="linq.min.js"></script>
     <script src="jquery.linq.min.js"></script>
@@ -106,5 +112,14 @@
     <!-- Dependecies -->
 
     <script src="core.js"></script>
+
+    <script type="text/javascript">
+    $(function () {
+        var vm = new viewModel();
+        vm.canvas.init(document.getElementById("canvas"));
+        ko.applyBindings(vm);
+    });
+</script>
+
 </body>
 </html>

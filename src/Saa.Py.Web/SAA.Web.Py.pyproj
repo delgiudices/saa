@@ -49,6 +49,16 @@
     <Compile Include="saa\wsgi.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="static\Content\font-awesome.css" />
+    <Content Include="static\Content\font-awesome.min.css" />
+    <Content Include="static\fonts\fontawesome-webfont.eot" />
+    <Content Include="static\fonts\fontawesome-webfont.svg" />
+    <Content Include="static\fonts\fontawesome-webfont.ttf" />
+    <Content Include="static\fonts\fontawesome-webfont.woff" />
+    <Content Include="static\fonts\fontawesome-webfont.woff2" />
+    <Content Include="static\fonts\FontAwesome.otf" />
+    <Content Include="static\Scripts\save.js" />
+    <Content Include="static\views\saveMap.html" />
     <None Include="bundleconfig.json" />
     <Content Include="requirements.txt" />
     <Content Include="static\Content\bootstrap-theme.css" />
@@ -63,7 +73,8 @@
     <Content Include="static\Content\css\select2-bootstrap.min.css" />
     <Content Include="static\Content\css\select2.css" />
     <Content Include="static\Content\css\select2.min.css" />
-    <Content Include="static\Content\imgs\floor.jpg" />
+    <Content Include="static\Content\imgs\point.png" />
+    <Content Include="static\Content\imgs\store.gif" />
     <Content Include="static\fonts\glyphicons-halflings-regular.eot" />
     <Content Include="static\fonts\glyphicons-halflings-regular.svg" />
     <Content Include="static\fonts\glyphicons-halflings-regular.ttf" />

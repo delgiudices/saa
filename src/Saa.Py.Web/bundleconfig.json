@@ -4,5 +4,17 @@
     "inputFiles": [
       "static/Content/css/select2-bootstrap.css"
     ]
+  },
+  {
+    "outputFileName": "static/Content/bootstrap.css",
+    "inputFiles": [
+      "static/Content/bootstrap.css"
+    ]
+  },
+  {
+    "outputFileName": "static/Content/font-awesome.css",
+    "inputFiles": [
+      "static/Content/font-awesome.css"
+    ]
   }
 ]

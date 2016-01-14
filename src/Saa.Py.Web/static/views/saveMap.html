@@ -1,0 +1,102 @@
+﻿<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>SAA - Mapa del almacen</title>
+    <link href="bootstrap.min.css" rel="stylesheet" />
+    <link href="bootstrap-theme.min.css" rel="stylesheet"/>
+    <link href="font-awesome.min.css" rel="stylesheet"/>
+    <link href="css/select2.min.css" rel="stylesheet" />
+    <link href="css/select2-bootstrap.min.css" rel="stylesheet">
+    <style type="text/css">
+    #canvas {
+        /*NEVER SET WIDTH AND HEIGHT HERE, AT LEAST YOU THAT U KNOW REALLY WHAT UR DOING*/
+        border: 1px solid black;
+    }
+
+    .activeTool {
+        color: lightblue;
+    }
+
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <h2>Mapa Almacen</h2>
+    <div class="row">
+        <div class="col-md-8">
+            <div class="row">
+                <div class="col-md-12">
+                    <i class="fa fa-mouse-pointer activeTool" data-bind="click: canvas.pointer"></i>
+                    <i class="fa fa-map-pin" data-bind="click: canvas.addNodeClick"></i>
+                    <i class="fa fa-road" data-bind="click: canvas.connectionModeClick"></i>
+                    <i class="glyphicon glyphicon-floppy-disk" data-bind="click: canvas.save"></i>
+                </div>
+            </div>
+            <canvas class="storeMap" id="canvas" width="800" height="600">
+                Your navigator doesn't support canvas :(
+            </canvas>
+        </div>
+        <div class="col-md-4">
+            <form role="form" class="form-horizontal" data-bind="with: canvas.toEditNode">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="form-group col-md-12">
+                            <label class="control-label" for="nombre">Nombre:</label>
+                            <input type="text" class="form-control" id="nombre" placeholder="Nombre" data-bind="value: name">
+                        </div>
+                        <div class="form-group col-md-12">
+                            <label class="control-label" for="type">Tipo:</label>
+                            <select class="form-control" id="type" data-bind="value: type, options: $root.nodeTypes, optionsText: 'text', optionsValue:'value'">
+                            </select>
+                        </div>
+                        <div class="form-group  col-md-6">
+                            <label for="articulo" class="control-label">Artículo:</label>
+                            <select type="text" class="form-control" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="articulo" data-bind="select2Data: article, select2: $root.spec, optionsText: 'nombre'"></select>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="cantidad" class="control-label">Cantidad:</label>
+                            <!--input type="number" class="form-control" id="cantidad" data-bind="value: amount" -->
+                        </div>
+                        <div class="col-md-12">
+                            <p data-bind="text: 'Position: ' + x() + ', ' + y()"></p>
+                            <!--input type="number" class="form-control" id="cantidad" data-bind="value: amount" -->
+                        </div>
+                        <div class="col-md-12">
+                            <button class="btn btn-default" data-bind="click: $root.canvas.saveToEdit">Guardar</button>
+                            <button class="btn btn-default" data-bind="click: $root.canvas.cancelToEdit">Cancelar</button>
+                        </div>
+                    </div>
+                </div>              
+            </form>
+        </div>
+       
+    </div>
+</div>
+    <img src="point.png" id="node" style="        display: none" />
+
+<!-- Dependecies -->
+    <script src="jquery-2.2.0.min.js"></script>
+    <script src="linq.min.js"></script>
+    <script src="jquery.linq.min.js"></script>
+    <script src="bootstrap.min.js"></script>
+    <script src="knockout-3.4.0.js"></script>
+    <script src="select2.min.js"></script>
+    <script src="knockout-select2.min.js"></script>
+    <script src="jaydata.min.js"></script>
+    <script src="jaydatamodules/knockout.min.js"></script>
+    <!-- Dependecies -->
+
+    <script src="save.js"></script>
+
+    <script type="text/javascript">
+    $(function () {
+        var vm = new viewModel();
+        vm.canvas.init(document.getElementById("canvas"));
+        ko.applyBindings(vm);
+    });
+</script>
+
+</body>
+</html>

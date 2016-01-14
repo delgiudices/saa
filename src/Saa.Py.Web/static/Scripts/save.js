@@ -1,5 +1,4 @@
-﻿
-function travelDescriptionViewModel(model) {
+﻿function travelDescriptionViewModel(model) {
     var self = this;
     self.selected = ko.observable();
     self.id = ko.observable(model.article()[0].data.pk);
@@ -19,6 +18,7 @@ function node(x, y, img) {
     self.x = x;
     self.y = y;
     self.img = img;
+    self.name = "";
 
     self.isPointInside = function (x, y) {
         return (x >= self.x && x <= self.x + self.img.width && y >= self.y && y <= self.y + self.img.height);
@@ -66,6 +66,26 @@ function nodes() {
         self.nodes.push(n);
         return n;
     }
+
+    self.save = function () {
+
+    }
+}
+
+function toEditNode(node) {
+    var self = this;
+    self.name = ko.observable(node ? node.name : "");
+    self.type = ko.observable(node ? node.type : "");
+    self.x = ko.observable(node ? node.x : null);
+    self.y = ko.observable(node ? node.y : null);
+    self.node = node;
+
+    self.persist = function () {
+        node.name = self.name();
+        node.type = self.type();
+        node.x = self.x();
+        node.y = self.y();
+    };
 }
 
 function storeCanvas(nodes, edges) {
@@ -75,28 +95,76 @@ function storeCanvas(nodes, edges) {
     self.nodesManager = nodes;
     self.edgesManager = edges;
     self.currentOper = function (e) { };
-    self.selected = null;
+    self.selected = ko.observable();
+    self.toEditNode = ko.observable();
 
-    self.addNodeClick = function () {
+    self.pointer = function (model, evt) {
+        self.asSelectTool(evt);
         self.currentOper = function (e) {
-            self.nodesManager.addNode(e.x, e.y).draw(self.ctx);
+            var toSelect = self.getSelectedNode(e);
+            self.clearSelected();
+            if (!toSelect) {
+                self.toEditNode(null);
+                return;
+            }
+            self.toEditNode(new toEditNode(toSelect));
+        };
+    }
+
+    self.addNodeClick = function (model, evt) {
+        self.asSelectTool(evt);
+        self.currentOper = function (e) {
+            self.clearSelected();
+            var n = self.nodesManager.addNode(e.x, e.y);
+            self.toEditNode(new toEditNode(n));
+            n.draw(self.ctx);
         }
     };
 
-    self.connectionModeClick = function () {
+    self.connectionModeClick = function (model, evt) {
+        self.asSelectTool(evt);
         self.currentOper = function (e) {
-            for (var i = 0; i < self.nodesManager.nodes.length; i++) {
-                if (self.nodesManager.nodes[i].isPointInside(e.x, e.y)) {
-                    if (self.selected !== null) {
-                        var other = self.nodesManager.nodes[i];
-                        self.edgesManager.addEdge(self.selected, other).draw(self.ctx);
-                        self.selected = null;
-                        break;
-                    }
-                    self.selected = self.nodesManager.nodes[i];
-                }
+            var toSelect = self.getSelectedNode(e);
+            if (!toSelect) return;
+            if (self.selected()) {
+                self.edgesManager.addEdge(self.selected(), toSelect).draw(self.ctx);
+                self.clearSelected();
             }
+            self.selected(toSelect);
         }
+    };
+
+    self.asSelectTool = function (e) {
+        var active = $(".activeTool");
+        active.removeClass("activeTool");
+        $(e.target).addClass("activeTool");
+    };
+
+
+    self.saveToEdit = function () {
+        self.toEditNode().persist();
+    }
+
+    self.cancelToEdit = function (model) {
+        console.log(model);
+    }
+
+    self.getSelectedNode = function (e) {
+        for (var i = 0; i < self.nodesManager.nodes.length; i++) {
+            var n = self.nodesManager.nodes[i];
+            if (n.isPointInside(e.x, e.y))
+                return n;
+        }
+    }
+
+    self.clearSelected = function () {
+        self.selected(null);
+    };
+
+    self.save = function (model, evt) {
+        self.asSelectTool(evt);
+        self.nodesManager.save();
+        //self.edgesManager.save();
     };
 
     self.init = function (can) {
@@ -170,6 +238,12 @@ function viewModel() {
     self.nodes = new nodes();
     self.edges = new edges();
     self.canvas = new storeCanvas(self.nodes, self.edges);
+    self.nodeTypes = ko.observableArray([
+        { value: "punto", text: "Punto" },
+        { value: "almacenamiento", text: "Almacenamiento" },
+        { value: "entrada", text: "Entrada" },
+        { value: "salida", text: "Salida" }
+    ]);
 
     self.spec = {
         ajax: {
