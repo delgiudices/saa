@@ -8,16 +8,16 @@
     <link href="bootstrap-theme.min.css" rel="stylesheet"/>
     <link href="font-awesome.min.css" rel="stylesheet"/>
     <link href="css/select2.min.css" rel="stylesheet" />
-    <link href="css/select2-bootstrap.min.css" rel="stylesheet">
+    <link href="css/select2-bootstrap.min.css" rel="stylesheet" />
     <style type="text/css">
-    #canvas {
-        /*NEVER SET WIDTH AND HEIGHT HERE, AT LEAST YOU THAT U KNOW REALLY WHAT UR DOING*/
-        border: 1px solid black;
-    }
+        #canvas {
+            /*NEVER SET WIDTH AND HEIGHT HERE, AT LEAST YOU THAT U KNOW REALLY WHAT UR DOING*/
+            border: 1px solid black;
+        }
 
-    .activeTool {
-        color: lightblue;
-    }
+        .activeTool {
+            color: lightblue;
+        }
 
     </style>
 </head>
@@ -31,6 +31,7 @@
                     <i class="fa fa-mouse-pointer activeTool" data-bind="click: canvas.pointer"></i>
                     <i class="fa fa-map-pin" data-bind="click: canvas.addNodeClick"></i>
                     <i class="fa fa-road" data-bind="click: canvas.connectionModeClick"></i>
+                    <i class="fa fa-minus-circle" data-bind="click: canvas.removePoint"></i>
                     <i class="glyphicon glyphicon-floppy-disk" data-bind="click: canvas.save"></i>
                 </div>
             </div>
@@ -48,35 +49,53 @@
                         </div>
                         <div class="form-group col-md-12">
                             <label class="control-label" for="type">Tipo:</label>
-                            <select class="form-control" id="type" data-bind="value: type, options: $root.nodeTypes, optionsText: 'text', optionsValue:'value'">
-                            </select>
+                            <select class="form-control" id="type" data-bind="value: type, options: $root.nodeTypes, optionsText: 'text', optionsValue:'value'"></select>
                         </div>
-                        <div class="form-group  col-md-6">
-                            <label for="articulo" class="control-label">Artículo:</label>
-                            <select type="text" class="form-control" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="articulo" data-bind="select2Data: article, select2: $root.spec, optionsText: 'nombre'"></select>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h3>Artículos</h3>
+                                <i class="glyphicon glyphicon-plus-sign" data-bind="click: addArticle"></i>
+                            </div>
                         </div>
-                        <div class="form-group col-md-6">
-                            <label for="cantidad" class="control-label">Cantidad:</label>
-                            <!--input type="number" class="form-control" id="cantidad" data-bind="value: amount" -->
+                        <div data-bind="foreach: articles">
+                            <div class="form-group  col-md-4">
+                                <label for="articulo" class="control-label">Artículo:</label>
+                                <select type="text" class="form-control" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="articulo" data-bind="select2Data: article, select2: $root.spec, optionsText: 'nombre'"></select>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="capacidad" class="control-label">Capacidad:</label>
+                                <input type="number" class="form-control" id="capacidad" data-bind="value: capacity" min="1">
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="cantidad" class="control-label">Cantidad:</label>
+                                <input type="number" class="form-control" id="cantidad" data-bind="value: actualAmount" min="0">
+                            </div>
+                            <i class="glyphicon glyphicon-minus-sign" style="color: pink" data-bind="click: $root.canvas.deleteArticle"></i>
                         </div>
+
                         <div class="col-md-12">
                             <p data-bind="text: 'Position: ' + x() + ', ' + y()"></p>
-                            <!--input type="number" class="form-control" id="cantidad" data-bind="value: amount" -->
                         </div>
                         <div class="col-md-12">
-                            <button class="btn btn-default" data-bind="click: $root.canvas.saveToEdit">Guardar</button>
+                            <button class="btn btn-primary" data-bind="click: $root.canvas.saveToEdit">Guardar</button>
                             <button class="btn btn-default" data-bind="click: $root.canvas.cancelToEdit">Cancelar</button>
                         </div>
                     </div>
-                </div>              
+                </div>
             </form>
         </div>
-       
     </div>
 </div>
-    <img src="point.png" id="node" style="        display: none" />
+<div class="row">
+    <div class="col-md-4">
+        <label for="mapImage">Imagen del mapa:</label>
+        <input type="file" class="form-control" id="mapImage" data-bind="value: canvas.fileImage"/>
+    </div>
+</div>
+     
+    <img src="point.png" id="node" style="display: none" alt="image" />
 
-<!-- Dependecies -->
+    <!-- Dependecies -->
     <script src="jquery-2.2.0.min.js"></script>
     <script src="linq.min.js"></script>
     <script src="jquery.linq.min.js"></script>
@@ -91,12 +110,12 @@
     <script src="save.js"></script>
 
     <script type="text/javascript">
-    $(function () {
-        var vm = new viewModel();
-        vm.canvas.init(document.getElementById("canvas"));
-        ko.applyBindings(vm);
-    });
-</script>
+        $(function () {
+            var vm = new viewModel();
+            vm.canvas.init(document.getElementById("canvas"));
+            ko.applyBindings(vm);
+        });
+    </script>
 
 </body>
 </html>

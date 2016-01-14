@@ -15,10 +15,11 @@ function toAddModel() {
 
 function node(x, y, img) {
     var self = this;
+    self.name = "";
     self.x = x;
     self.y = y;
+    self.articles = [];
     self.img = img;
-    self.name = "";
 
     self.isPointInside = function (x, y) {
         return (x >= self.x && x <= self.x + self.img.width && y >= self.y && y <= self.y + self.img.height);
@@ -59,17 +60,42 @@ function edges() {
 
 function nodes() {
     var self = this;
-    self.nodes = [];
+    self.nodes = ko.observableArray();
 
     self.addNode = function (x, y) {
         var n = new node(x, y, document.getElementById("node"));
         self.nodes.push(n);
         return n;
     }
+    self.remove = function (n) {
+        self.nodes.remove(n);
+        //TODO: I should remove edges
+        //TODO: Use update funcion. sucks... but it's the way to go :(
+        //TODO: Load the map when saved
+        //TODO: List maps
+        //TODO: The image should no erase points when changed
+        //TODO: Center lines
+        //TODO: Center point when adding
+        //TODO: Style points by type
+        //TODO: Make a resume of the point on mouse over
+        //TODO: Remove edge funciontality
+        //TODO: Add edges weight
+        //TODO: Edit map funcionality
+        //TODO: Add server side validations
+        //TODO: Add client side validations
+        //TODO: Avoid edges to self node
+    }
 
     self.save = function () {
 
     }
+}
+
+function toAddArticle() {
+    var self = this;
+    self.article = ko.observable();
+    self.capacity = ko.observable();
+    self.actualAmount = ko.observable();
 }
 
 function toEditNode(node) {
@@ -78,13 +104,19 @@ function toEditNode(node) {
     self.type = ko.observable(node ? node.type : "");
     self.x = ko.observable(node ? node.x : null);
     self.y = ko.observable(node ? node.y : null);
+    self.articles = ko.observableArray(node.articles);
     self.node = node;
+
+    self.addArticle = function () {
+        self.articles.push(new toAddArticle());
+    };
 
     self.persist = function () {
         node.name = self.name();
         node.type = self.type();
         node.x = self.x();
         node.y = self.y();
+        node.articles = self.articles();
     };
 }
 
@@ -97,12 +129,27 @@ function storeCanvas(nodes, edges) {
     self.currentOper = function (e) { };
     self.selected = ko.observable();
     self.toEditNode = ko.observable();
+    self.fileImage = ko.observable();
+
+    self.fileImage.subscribe(function (a) {
+
+        var reader = new FileReader();
+
+        reader.onload = function (e) {
+            var img = document.createElement('img');
+            img.src = e.target.result;
+            img.onload = function () {
+                self.ctx.drawImage(this, 0, 0, self.ctx.canvas.width, self.ctx.canvas.height);
+            }
+        }
+        reader.readAsDataURL($("#mapImage").prop('files')[0]);
+    });
 
     self.pointer = function (model, evt) {
         self.asSelectTool(evt);
+        self.clearSelected();
         self.currentOper = function (e) {
             var toSelect = self.getSelectedNode(e);
-            self.clearSelected();
             if (!toSelect) {
                 self.toEditNode(null);
                 return;
@@ -113,13 +160,25 @@ function storeCanvas(nodes, edges) {
 
     self.addNodeClick = function (model, evt) {
         self.asSelectTool(evt);
+        self.clearSelected();
         self.currentOper = function (e) {
-            self.clearSelected();
             var n = self.nodesManager.addNode(e.x, e.y);
             self.toEditNode(new toEditNode(n));
             n.draw(self.ctx);
         }
     };
+
+    self.removePoint = function (model, evt) {
+        self.asSelectTool(evt);
+        self.clearSelected();
+        self.toEditNode(null);
+        self.currentOper = function (e) {
+            var toSelect = self.getSelectedNode(e);
+            if (!toSelect) return;
+            console.log(toSelect);
+            self.nodesManager.remove(toSelect);
+        }
+    }
 
     self.connectionModeClick = function (model, evt) {
         self.asSelectTool(evt);
@@ -129,6 +188,7 @@ function storeCanvas(nodes, edges) {
             if (self.selected()) {
                 self.edgesManager.addEdge(self.selected(), toSelect).draw(self.ctx);
                 self.clearSelected();
+                return;
             }
             self.selected(toSelect);
         }
@@ -140,18 +200,20 @@ function storeCanvas(nodes, edges) {
         $(e.target).addClass("activeTool");
     };
 
-
     self.saveToEdit = function () {
         self.toEditNode().persist();
     }
 
     self.cancelToEdit = function (model) {
-        console.log(model);
+        self.toEditNode(new toEditNode(self.toEditNode().node));
+    }
+    self.deleteArticle = function (model) {
+        self.toEditNode().articles.remove(model);
     }
 
     self.getSelectedNode = function (e) {
-        for (var i = 0; i < self.nodesManager.nodes.length; i++) {
-            var n = self.nodesManager.nodes[i];
+        for (var i = 0; i < self.nodesManager.nodes().length; i++) {
+            var n = self.nodesManager.nodes()[i];
             if (n.isPointInside(e.x, e.y))
                 return n;
         }
@@ -163,6 +225,7 @@ function storeCanvas(nodes, edges) {
 
     self.save = function (model, evt) {
         self.asSelectTool(evt);
+        self.clearSelected();
         self.nodesManager.save();
         //self.edgesManager.save();
     };
@@ -170,13 +233,7 @@ function storeCanvas(nodes, edges) {
     self.init = function (can) {
         self.ctx = can.getContext('2d');
 
-        var img = document.createElement('img');
-        img.src = 'store.gif';
-        img.onload = function () {
-            self.ctx.drawImage(this, 0, 0, can.width, can.height);
-        }
-
-        $(can).click(function (e) {
+        $(self.ctx.canvas).click(function (e) {
             var x = e.pageX - this.offsetLeft - $(this).parent().offset().left;
             var y = e.pageY - this.offsetTop - $(this).parent().offset().top;
 
