@@ -13,6 +13,13 @@ function toAddModel() {
     self.amount = ko.observable();
 }
 
+function guid() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = crypto.getRandomValues(new Uint8Array(1))[0] % 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
 function node(x, y, img) {
     var self = this;
     self.name = "";
@@ -20,6 +27,7 @@ function node(x, y, img) {
     self.y = y;
     self.articles = [];
     self.img = img;
+    self.guid = guid();
 
     self.isPointInside = function (x, y) {
         return (x >= self.x && x <= self.x + self.img.width && y >= self.y && y <= self.y + self.img.height);
@@ -36,7 +44,18 @@ function edge(n1, n2) {
     self.node2 = n2;
 
     self.isPointInside = function (x, y) {
+        var x1 = self.node1.x;
+        var x2 = self.node2.x;
+        var y1 = self.node1.y;
+        var y2 = self.node2.y;
+
+        var A = (x2 - x1);
+        var B = (y2 - y1);
+        var C = (-B * x1) + (A * y1);
+
+        var r = B * x - A * y + C;
         return false;
+        //return (x >= self.x && x <= self.x + self.img.width && y >= self.y && y <= self.y + self.img.height);
     }
 
     self.draw = function (ctx) {
@@ -49,41 +68,55 @@ function edge(n1, n2) {
 
 function edges() {
     var self = this;
-    self.edges = [];
+    self.edges = ko.observableArray();
 
     self.addEdge = function (n1, n2) {
         var e = new edge(n1, n2);
         self.edges.push(e);
         return e;
-    }
+    };
+
+    self.removeByNode = function (node) {
+        var edges = Enumerable.From(self.edges()).Where(function (n) {
+            return n.node1.guid === node.guid || n.node2.guid === node.guid;
+        }).ToArray();
+        for (var i = 0; i < edges.length; i++) {
+            self.edges.remove(edges[i]);
+        }
+
+    };
 }
 
-function nodes() {
+function nodes(edges) {
     var self = this;
     self.nodes = ko.observableArray();
+    self.edges = edges;
 
     self.addNode = function (x, y) {
         var n = new node(x, y, document.getElementById("node"));
         self.nodes.push(n);
         return n;
     }
+
     self.remove = function (n) {
         self.nodes.remove(n);
-        //TODO: I should remove edges
+        self.edges.removeByNode(n);
+
         //TODO: Use update funcion. sucks... but it's the way to go :(
         //TODO: Load the map when saved
         //TODO: List maps
-        //TODO: The image should no erase points when changed
-        //TODO: Center lines
-        //TODO: Center point when adding
-        //TODO: Style points by type
-        //TODO: Make a resume of the point on mouse over
-        //TODO: Remove edge funciontality
-        //TODO: Add edges weight
+
+        //TODO: Add edges distance
         //TODO: Edit map funcionality
         //TODO: Add server side validations
         //TODO: Add client side validations
         //TODO: Avoid edges to self node
+        //TODO: Travels should added to a queue
+
+        //TODO: Center lines
+        //TODO: Center (Point) related to mouse position when adding nodes
+        //TODO: Style points by type
+        //TODO: Make a resume of the point on mouse over
     }
 
     self.save = function () {
@@ -120,7 +153,18 @@ function toEditNode(node) {
     };
 }
 
-function storeCanvas(nodes, edges) {
+function background(src, onload) {
+    var self = this;
+    self.img = document.createElement('img');
+    self.img.src = src;
+    self.img.onload = onload,
+
+    self.draw = function (ctx) {
+        ctx.drawImage(self.img, 0, 0, ctx.canvas.width, ctx.canvas.height);
+    }
+}
+
+function storeCanvas(nodes, edges, bkImage) {
     var self = this;
     self.ctx = null;
     self.mode = null;
@@ -129,18 +173,26 @@ function storeCanvas(nodes, edges) {
     self.currentOper = function (e) { };
     self.selected = ko.observable();
     self.toEditNode = ko.observable();
+    self.background = new background(bkImage);
     self.fileImage = ko.observable();
 
+    self.redraw = function () {
+        self.ctx.clearRect(0, 0, self.ctx.canvas.width, self.ctx.canvas.height);
+        self.background.draw(self.ctx);
+
+        $.each(self.nodesManager.nodes(), function (i, e) {
+            e.draw(self.ctx);
+        });
+        $.each(self.edgesManager.edges(), function (i, e) {
+            e.draw(self.ctx);
+        });
+    }
+
     self.fileImage.subscribe(function (a) {
-
         var reader = new FileReader();
-
         reader.onload = function (e) {
-            var img = document.createElement('img');
-            img.src = e.target.result;
-            img.onload = function () {
-                self.ctx.drawImage(this, 0, 0, self.ctx.canvas.width, self.ctx.canvas.height);
-            }
+            self.background = new background(e.target.result);
+            self.redraw();
         }
         reader.readAsDataURL($("#mapImage").prop('files')[0]);
     });
@@ -174,9 +226,11 @@ function storeCanvas(nodes, edges) {
         self.toEditNode(null);
         self.currentOper = function (e) {
             var toSelect = self.getSelectedNode(e);
+            self.getSelectedEdge(e);
             if (!toSelect) return;
             console.log(toSelect);
             self.nodesManager.remove(toSelect);
+            self.redraw();
         }
     }
 
@@ -211,6 +265,14 @@ function storeCanvas(nodes, edges) {
         self.toEditNode().articles.remove(model);
     }
 
+    self.getSelectedEdge = function (e) {
+        for (var i = 0; i < self.edgesManager.edges().length; i++) {
+            var n = self.edgesManager.edges()[i];
+            if (n.isPointInside(e.x, e.y))
+                return n;
+        }
+    }
+
     self.getSelectedNode = function (e) {
         for (var i = 0; i < self.nodesManager.nodes().length; i++) {
             var n = self.nodesManager.nodes()[i];
@@ -232,6 +294,7 @@ function storeCanvas(nodes, edges) {
 
     self.init = function (can) {
         self.ctx = can.getContext('2d');
+        self.background.draw(self.ctx);
 
         $(self.ctx.canvas).click(function (e) {
             var x = e.pageX - this.offsetLeft - $(this).parent().offset().left;
@@ -292,9 +355,10 @@ function viewModel() {
             return a.selected();
         });
     }
-    self.nodes = new nodes();
     self.edges = new edges();
-    self.canvas = new storeCanvas(self.nodes, self.edges);
+    self.nodes = new nodes(self.edges);
+
+    self.canvas = new storeCanvas(self.nodes, self.edges, "");
     self.nodeTypes = ko.observableArray([
         { value: "punto", text: "Punto" },
         { value: "almacenamiento", text: "Almacenamiento" },
