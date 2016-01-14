@@ -361,7 +361,7 @@ function viewModel() {
     self.canvas = new storeCanvas(self.nodes, self.edges, "");
     self.nodeTypes = ko.observableArray([
         { value: "punto", text: "Punto" },
-        { value: "almacenamiento", text: "Almacenamiento" },
+        { value: "almacen", text: "Almacenamiento" },
         { value: "entrada", text: "Entrada" },
         { value: "salida", text: "Salida" }
     ]);

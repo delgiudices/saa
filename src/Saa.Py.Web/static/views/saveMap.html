@@ -51,13 +51,13 @@
                             <label class="control-label" for="nombre">Nombre:</label>
                             <input type="text" class="form-control" id="nombre" placeholder="Nombre" data-bind="value: name">
                         </div>
-                        <div class="row">
+                        <div class="row" data-bind="visible: type() === 'almacen'">
                             <div class="col-md-12">
                                 <h3>Artículos</h3>
                                 <i class="glyphicon glyphicon-plus-sign" data-bind="click: addArticle"></i>
                             </div>
                         </div>
-                        <div data-bind="foreach: articles">
+                        <div data-bind="foreach: articles, visible: type() !== 'almacen'">
                             <div class="form-group  col-md-4">
                                 <label for="articulo" class="control-label">Artículo:</label>
                                 <select type="text" class="form-control" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="articulo" data-bind="select2Data: article, select2: $root.spec, optionsText: 'nombre'"></select>
