@@ -28,6 +28,7 @@ function node(x, y, img) {
     self.articles = [];
     self.img = img;
     self.guid = guid();
+    self.nodes = [];
 
     self.isPointInside = function (x, y) {
         return (x >= self.x && x <= self.x + self.img.width && y >= self.y && y <= self.y + self.img.height);
@@ -42,20 +43,35 @@ function edge(n1, n2) {
     var self = this;
     self.node1 = n1;
     self.node2 = n2;
+    self.distance = null;
 
     self.isPointInside = function (x, y) {
-        var x1 = self.node1.x;
-        var x2 = self.node2.x;
-        var y1 = self.node1.y;
-        var y2 = self.node2.y;
+        //http://stackoverflow.com/a/24044684
+        // calculate the point on the line that's 
+        // nearest to the mouse position
+        function linepointNearestMouse(line, x, y) {
+            //
+            lerp = function (a, b, x) { return (a + x * (b - a)); };
+            var dx = line.x1 - line.x0;
+            var dy = line.y1 - line.y0;
+            var t = ((x - line.x0) * dx + (y - line.y0) * dy) / (dx * dx + dy * dy);
+            var lineX = lerp(line.x0, line.x1, t);
+            var lineY = lerp(line.y0, line.y1, t);
+            return ({ x: lineX, y: lineY });
+        };
+        //http://stackoverflow.com/a/24044684
+        var linepoint = linepointNearestMouse({
+            x0: self.node1.x,
+            y0: self.node1.y,
+            x1: self.node2.x,
+            y1: self.node2.y
+        }, x, y);
+        var tolerance = 3;
+        var dx = x - linepoint.x;
+        var dy = y - linepoint.y;
+        var distance = Math.abs(Math.sqrt(dx * dx + dy * dy));
 
-        var A = (x2 - x1);
-        var B = (y2 - y1);
-        var C = (-B * x1) + (A * y1);
-
-        var r = B * x - A * y + C;
-        return false;
-        //return (x >= self.x && x <= self.x + self.img.width && y >= self.y && y <= self.y + self.img.height);
+        return distance < tolerance;
     }
 
     self.draw = function (ctx) {
@@ -71,20 +87,43 @@ function edges() {
     self.edges = ko.observableArray();
 
     self.addEdge = function (n1, n2) {
+        if (n1.guid === n2.guid) {
+            alert("Un nodo no puede conectarse así mismo.");
+            return undefined;
+        }
+        if (Enumerable.From(self.edges()).Any(function (e) {
+            return (e.node1.guid === n1.guid || e.node2.guid === n1.guid) && (e.node1.guid === n2.guid || e.node2.guid === n2.guid);
+        })) {
+            alert("Ya existe una conexión para estos nodos.");
+            return undefined;
+        }
+
         var e = new edge(n1, n2);
+        n1.nodes.push(n2);
+        n2.nodes.push(n1);
         self.edges.push(e);
         return e;
     };
 
+    self.remove = function (e) {
+        self.edges.remove(e);
+    }
+
     self.removeByNode = function (node) {
-        var edges = Enumerable.From(self.edges()).Where(function (n) {
-            return n.node1.guid === node.guid || n.node2.guid === node.guid;
+        var edges = Enumerable.From(self.edges()).Where(function (e) {
+            return e.node1.guid === node.guid || e.node2.guid === node.guid;
         }).ToArray();
         for (var i = 0; i < edges.length; i++) {
             self.edges.remove(edges[i]);
         }
 
     };
+
+    self.byNode = function (node) {
+        return Enumerable.From(self.edges()).Where(function (e) {
+            return e.node1.guid === node.guid || e.node2.guid === node.guid;
+        }).FirstOrDefault();
+    }
 }
 
 function nodes(edges) {
@@ -145,11 +184,25 @@ function toEditNode(node) {
     };
 
     self.persist = function () {
-        node.name = self.name();
-        node.type = self.type();
-        node.x = self.x();
-        node.y = self.y();
-        node.articles = self.articles();
+        self.node.name = self.name();
+        self.node.type = self.type();
+        self.node.x = self.x();
+        self.node.y = self.y();
+        self.node.articles = self.articles();
+    };
+}
+
+function toEditEdge(edge) {
+    var self = this;
+    self.node1 = ko.observable(edge.node1);
+    self.node2 = ko.observable(edge.node2);
+    self.distance = ko.observable(edge.distance);
+    self.edge = edge;
+
+    self.persist = function () {
+        self.edge.node1 = self.node1();
+        self.edge.node2 = self.node2();
+        self.edge.distance = self.distance();
     };
 }
 
@@ -173,6 +226,7 @@ function storeCanvas(nodes, edges, bkImage) {
     self.currentOper = function (e) { };
     self.selected = ko.observable();
     self.toEditNode = ko.observable();
+    self.toEditEdge = ko.observable();
     self.background = new background(bkImage);
     self.fileImage = ko.observable();
 
@@ -201,18 +255,28 @@ function storeCanvas(nodes, edges, bkImage) {
         self.asSelectTool(evt);
         self.clearSelected();
         self.currentOper = function (e) {
-            var toSelect = self.getSelectedNode(e);
-            if (!toSelect) {
-                self.toEditNode(null);
+            var node = self.getSelectedNode(e);
+
+            if (node) {
+                self.toEditNode(new toEditNode(node));
+                self.toEditEdge(null);
                 return;
             }
-            self.toEditNode(new toEditNode(toSelect));
+
+            self.toEditNode(null);
+            var edge = self.getSelectedEdge(e);
+            if (edge) {
+                self.toEditEdge(new toEditEdge(edge));
+            } else {
+                self.toEditEdge(null);
+            }
         };
     }
 
     self.addNodeClick = function (model, evt) {
         self.asSelectTool(evt);
         self.clearSelected();
+        self.toEditEdge(null);
         self.currentOper = function (e) {
             var n = self.nodesManager.addNode(e.x, e.y);
             self.toEditNode(new toEditNode(n));
@@ -224,27 +288,41 @@ function storeCanvas(nodes, edges, bkImage) {
         self.asSelectTool(evt);
         self.clearSelected();
         self.toEditNode(null);
+        self.toEditEdge(null);
         self.currentOper = function (e) {
-            var toSelect = self.getSelectedNode(e);
-            self.getSelectedEdge(e);
-            if (!toSelect) return;
-            console.log(toSelect);
-            self.nodesManager.remove(toSelect);
+            var node = self.getSelectedNode(e);
+            var edge = self.getSelectedEdge(e);
+            if (node) {
+                self.nodesManager.remove(node);
+            }
+            if (edge) {
+                self.edgesManager.remove(edge);
+            }
             self.redraw();
         }
     }
 
     self.connectionModeClick = function (model, evt) {
         self.asSelectTool(evt);
+
         self.currentOper = function (e) {
-            var toSelect = self.getSelectedNode(e);
-            if (!toSelect) return;
+            var node = self.getSelectedNode(e);
+            if (!node) return;
             if (self.selected()) {
-                self.edgesManager.addEdge(self.selected(), toSelect).draw(self.ctx);
+                var edge = self.edgesManager.addEdge(self.selected(), node);
+                if (!edge) {
+                    self.clearSelected();
+                    return;
+                }
+                edge.draw(self.ctx);
+                self.toEditEdge(new toEditEdge(edge));
+                self.toEditNode(null);
                 self.clearSelected();
                 return;
             }
-            self.selected(toSelect);
+            self.toEditEdge(null);
+            self.toEditNode(new toEditNode(node));
+            self.selected(node);
         }
     };
 
@@ -258,9 +336,18 @@ function storeCanvas(nodes, edges, bkImage) {
         self.toEditNode().persist();
     }
 
-    self.cancelToEdit = function (model) {
+    self.cancelToEdit = function () {
         self.toEditNode(new toEditNode(self.toEditNode().node));
     }
+
+    self.saveToEditEdge = function () {
+        self.toEditEdge().persist();
+    }
+
+    self.cancelToEditEdge = function () {
+        self.toEditEdge(new toEditEdge(self.toEditEdge().edge));
+    }
+
     self.deleteArticle = function (model) {
         self.toEditNode().articles.remove(model);
     }
