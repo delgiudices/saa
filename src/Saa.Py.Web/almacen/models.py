@@ -7,6 +7,7 @@ class Almacen(models.Model):
         return self.nombre
 
     nombre = models.CharField(max_length=80)
+    mapa = models.ImageField(null=True, blank=True)
 
 
 class Nodo(models.Model):
@@ -15,12 +16,15 @@ class Nodo(models.Model):
         ('salida', 'Salida'),
         ('entrada', 'Entrada'),
         ('almacen', 'Almacen'),
+        ('punto', 'Punto'),
     )
 
     almacen = models.ForeignKey(Almacen)
     tipo = models.CharField(choices=choices, max_length=80)
     articulos = models.ManyToManyField('Articulo', through='Nodo_Articulo')
     nodos = models.ManyToManyField('Nodo', through='Camino')
+    x = models.IntegerField()
+    y = models.IntegerField()
 
 
 class Articulo(models.Model):
@@ -36,6 +40,7 @@ class Nodo_Articulo(models.Model):
     nodo = models.ForeignKey(Nodo)
     articulo = models.ForeignKey(Articulo)
     cantidad = models.PositiveIntegerField()
+    capacidad = models.PositiveIntegerField()
 
 
 class Camino(models.Model):

@@ -1,8 +1,9 @@
 from almacen.serializers import(
     AlmacenSerializer, NodoSerializer, ArticuloSerializer, RobotSerializer,
-    CaminoSerializer)
+    CaminoSerializer, Nodo_ArticuloSerializer)
 from rest_framework.viewsets import ModelViewSet
-from almacen.models import Almacen, Nodo, Articulo, Robot, Camino
+from almacen.models import(
+    Almacen, Nodo, Articulo, Robot, Camino, Nodo_Articulo)
 
 # Create your views here.
 
@@ -35,3 +36,9 @@ class CaminoViewSet(ModelViewSet):
 
     serializer_class = CaminoSerializer
     queryset = Camino.objects.all()
+
+
+class NodoArticuloViewSet(ModelViewSet):
+
+    serializer_class = Nodo_ArticuloSerializer
+    queryset = Nodo_Articulo.objects.all()
