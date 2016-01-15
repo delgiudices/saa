@@ -18,6 +18,8 @@ from django.contrib import admin
 from rest_framework import routers
 from django.views.generic import TemplateView
 from almacen import views
+from django.conf.urls import patterns, url
+from saa import settings
 
 router = routers.DefaultRouter()
 router.register(r'almacenes', views.AlmacenViewSet)
@@ -25,6 +27,7 @@ router.register(r'nodos', views.NodoViewSet)
 router.register(r'robots', views.RobotViewSet)
 router.register(r'articulos', views.ArticuloViewSet)
 router.register(r'caminos', views.CaminoViewSet)
+router.register(r'nodo_articulo', views.NodoArticuloViewSet)
 
 
 urlpatterns = [
@@ -33,3 +36,7 @@ urlpatterns = [
     #static page
     url(r'^$', TemplateView.as_view(template_name="./views/index.html"), name='homepage'),
 ]
+
+urlpatterns += patterns('',
+                        (r'^media/(?P<path>.*)$', 'django.views.static.serve', {
+                            'document_root': settings.MEDIA_ROOT}))

@@ -1,18 +1,20 @@
 from rest_framework.serializers import ModelSerializer
-from almacen.models import Almacen, Nodo, Articulo, Robot, Camino
+from almacen.models import(
+    Almacen, Nodo, Articulo, Robot, Camino, Nodo_Articulo)
 
 
 class AlmacenSerializer(ModelSerializer):
 
     class Meta:
-        fields = ('pk', 'nombre')
+        fields = ('pk', 'nombre', 'mapa')
         model = Almacen
+        depth = 2
 
 
 class NodoSerializer(ModelSerializer):
 
     class Meta:
-        fields = ('pk', 'almacen', 'tipo', 'articulos', 'nodos')
+        fields = ('pk', 'almacen', 'tipo', 'articulos', 'nodos', 'x', 'y')
         model = Nodo
 
 
@@ -35,3 +37,10 @@ class CaminoSerializer(ModelSerializer):
     class Meta:
         fields = ('pk', 'desde', 'hasta', 'distancia')
         model = Camino
+
+
+class Nodo_ArticuloSerializer(ModelSerializer):
+
+    class Meta:
+        fields = ('pk', 'nodo', 'articulo', 'cantidad', 'capacidad')
+        model = Nodo_Articulo

@@ -30,36 +30,36 @@ ALLOWED_HOSTS = []
 
 # Application definition
 INSTALLED_APPS = ('django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'almacen',
-    'rest_framework',)
+                  'django.contrib.auth',
+                  'django.contrib.contenttypes',
+                  'django.contrib.sessions',
+                  'django.contrib.messages',
+                  'django.contrib.staticfiles',
+                  'almacen',
+                  'rest_framework',)
 
 MIDDLEWARE_CLASSES = ('django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.security.SecurityMiddleware',)
+                      'django.middleware.common.CommonMiddleware',
+                      'django.middleware.csrf.CsrfViewMiddleware',
+                      'django.contrib.auth.middleware.AuthenticationMiddleware',
+                      'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+                      'django.contrib.messages.middleware.MessageMiddleware',
+                      'django.middleware.clickjacking.XFrameOptionsMiddleware',
+                      'django.middleware.security.SecurityMiddleware',)
 
 ROOT_URLCONF = 'saa.urls'
 
 TEMPLATES = [{
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': ['django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',],
-        },
-    },]
+    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    'DIRS': [],
+    'APP_DIRS': True,
+    'OPTIONS': {
+        'context_processors': ['django.template.context_processors.debug',
+                               'django.template.context_processors.request',
+                               'django.contrib.auth.context_processors.auth',
+                               'django.contrib.messages.context_processors.messages',],
+    },
+},]
 
 WSGI_APPLICATION = 'saa.wsgi.application'
 
@@ -93,9 +93,12 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static/Content'), 
-                    os.path.join(BASE_DIR, 'static/Content/css'), 
-                    os.path.join(BASE_DIR, 'static/Content/imgs'), 
-                    os.path.join(BASE_DIR, 'static/fonts'), 
-                    os.path.join(BASE_DIR, 'static/Scripts'), 
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static/Content'),
+                    os.path.join(BASE_DIR, 'static/Content/css'),
+                    os.path.join(BASE_DIR, 'static/Content/imgs'),
+                    os.path.join(BASE_DIR, 'static/fonts'),
+                    os.path.join(BASE_DIR, 'static/Scripts'),
                     os.path.join(BASE_DIR, 'static/views')]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
