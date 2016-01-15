@@ -43,43 +43,63 @@
             <form role="form" class="form-horizontal" data-bind="with: canvas.toEditNode">
                 <div class="panel panel-default">
                     <div class="panel-body">
+                        <h2>Nodo</h2>
                         <div class="form-group col-md-12">
                             <label class="control-label" for="type">Tipo:</label>
                             <select class="form-control" id="type" data-bind="value: type, options: $root.nodeTypes, optionsText: 'text', optionsValue:'value'"></select>
                         </div>
                         <div class="form-group col-md-12" data-bind="visible: type() !== 'punto'">
                             <label class="control-label" for="nombre">Nombre:</label>
-                            <input type="text" class="form-control" id="nombre" placeholder="Nombre" data-bind="value: name">
+                            <input type="text" class="form-control" id="nombre" placeholder="Nombre" data-bind="value: name" />
                         </div>
-                        <div class="row">
+                        <div class="row" data-bind="visible: type() === 'almacen'">
                             <div class="col-md-12">
                                 <h3>Artículos</h3>
                                 <i class="glyphicon glyphicon-plus-sign" data-bind="click: addArticle"></i>
                             </div>
                         </div>
-                        <div data-bind="foreach: articles">
-                            <div class="form-group  col-md-4">
-                                <label for="articulo" class="control-label">Artículo:</label>
-                                <select type="text" class="form-control" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="articulo" data-bind="select2Data: article, select2: $root.spec, optionsText: 'nombre'"></select>
+                        <div data-bind="foreach: articles, visible: type()==='almacen' ">
+                            <div class="row">
+                                <div class="form-group  col-md-4">
+                                    <label for="articulo" class="control-label">Artículo:</label>
+                                    <select type="text" class="form-control" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="articulo" data-bind="select2Data: article, select2: $root.spec, optionsText: 'nombre'"></select>
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label for="capacidad" class="control-label">Capacidad:</label>
+                                    <input type="number" class="form-control" id="capacidad" data-bind="value: capacity" min="1">
+                                </div>
+                                <div class="form-group col-md-3">
+                                    <label for="cantidad" class="control-label">Cantidad:</label>
+                                    <input type="number" class="form-control" id="cantidad" data-bind="value: actualAmount" min="0">
+                                </div>
+                                <div class="col-md-1">
+                                    <i class="glyphicon glyphicon-minus-sign" style="color: pink" data-bind="click: $root.canvas.deleteArticle"></i>
+                                </div>
                             </div>
-                            <div class="form-group col-md-4">
-                                <label for="capacidad" class="control-label">Capacidad:</label>
-                                <input type="number" class="form-control" id="capacidad" data-bind="value: capacity" min="1">
-                            </div>
-                            <div class="form-group col-md-4">
-                                <label for="cantidad" class="control-label">Cantidad:</label>
-                                <input type="number" class="form-control" id="cantidad" data-bind="value: actualAmount" min="0">
-                            </div>
-                            <i class="glyphicon glyphicon-minus-sign" style="color: pink" data-bind="click: $root.canvas.deleteArticle"></i>
                         </div>
 
                         <div class="col-md-12">
-                            <p data-bind="text: 'Position: ' + x() + ', ' + y()"></p>
-                            <p data-bind="text: 'Guid: ' + guid()"></p>
+                            <p data-bind="text: 'Posición: ' + x() + ', ' + y()"></p>
                         </div>
                         <div class="col-md-12">
                             <button class="btn btn-primary" data-bind="click: $root.canvas.saveToEdit">Guardar</button>
                             <button class="btn btn-default" data-bind="click: $root.canvas.cancelToEdit">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <form role="form" class="form-horizontal" data-bind="with: canvas.toEditEdge">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <h2>Camino</h2>
+                        <div class="form-group col-md-12">
+                            <label class="control-label" for="distancia">Distancia:</label>
+                            <input type="number" class="form-control" id="distancia" placeholder="Distancia" data-bind="value: distance"min="1"/>
+                        </div>
+                        <div class="col-md-12">
+                            <button class="btn btn-primary" data-bind="click: $root.canvas.saveToEditEdge">Guardar</button>
+                            <button class="btn btn-default" data-bind="click: $root.canvas.cancelToEditEdge">Cancelar</button>
                         </div>
                     </div>
                 </div>
@@ -94,7 +114,6 @@
     </div>
 </div>
 
-     
     <img src="point.png" id="node" style="display: none" alt="image" />
 
     <!-- Dependecies -->
