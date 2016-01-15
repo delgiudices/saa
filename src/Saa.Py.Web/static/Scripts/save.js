@@ -189,6 +189,7 @@ function toEditNode(node) {
         self.node.x = self.x();
         self.node.y = self.y();
         self.node.articles = self.articles();
+        
     };
 }
 
@@ -256,7 +257,6 @@ function storeCanvas(nodes, edges, bkImage) {
         self.clearSelected();
         self.currentOper = function (e) {
             var node = self.getSelectedNode(e);
-
             if (node) {
                 self.toEditNode(new toEditNode(node));
                 self.toEditEdge(null);
@@ -375,7 +375,7 @@ function storeCanvas(nodes, edges, bkImage) {
     self.save = function (model, evt) {
         self.asSelectTool(evt);
         self.clearSelected();
-        self.nodesManager.save();
+        //self.nodesManager.save();
         //self.edgesManager.save();
     };
 
