@@ -1,19 +1,4 @@
-﻿function travelDescriptionViewModel(model) {
-    var self = this;
-    self.selected = ko.observable();
-    self.id = ko.observable(model.article()[0].data.pk);
-    self.description = ko.observable(model.article()[0].data.nombre);
-    self.articleNodeName = ko.observable(model.article()[0].node);
-    self.amount = ko.observable(model.amount());
-}
-
-function toAddModel() {
-    var self = this;
-    self.article = ko.observable();
-    self.amount = ko.observable();
-}
-
-function guid() {
+﻿function guid() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
         var r = crypto.getRandomValues(new Uint8Array(1))[0] % 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
@@ -140,22 +125,6 @@ function nodes(edges) {
     self.remove = function (n) {
         self.nodes.remove(n);
         self.edges.removeByNode(n);
-
-        //TODO: Use update funcion. sucks... but it's the way to go :(
-        //TODO: Load the map when saved
-        //TODO: List maps
-
-        //TODO: Add edges distance
-        //TODO: Edit map funcionality
-        //TODO: Add server side validations
-        //TODO: Add client side validations
-        //TODO: Avoid edges to self node
-        //TODO: Travels should added to a queue
-
-        //TODO: Center lines
-        //TODO: Center (Point) related to mouse position when adding nodes
-        //TODO: Style points by type
-        //TODO: Make a resume of the point on mouse over
     }
 
     self.save = function () {
@@ -189,7 +158,6 @@ function toEditNode(node) {
         self.node.x = self.x();
         self.node.y = self.y();
         self.node.articles = self.articles();
-        
     };
 }
 
@@ -221,11 +189,11 @@ function background(src, onload) {
 function storeCanvas(nodes, edges, bkImage) {
     var self = this;
     self.ctx = null;
-    self.mode = null;
     self.nodesManager = nodes;
     self.edgesManager = edges;
     self.currentOper = function (e) { };
-    self.selected = ko.observable();
+
+    self.firstToConnectNode = ko.observable();
     self.toEditNode = ko.observable();
     self.toEditEdge = ko.observable();
     self.background = new background(bkImage);
@@ -254,10 +222,13 @@ function storeCanvas(nodes, edges, bkImage) {
 
     self.pointer = function (model, evt) {
         self.asSelectTool(evt);
-        self.clearSelected();
+        self.clearFirstToConnectNode();
         self.currentOper = function (e) {
             var node = self.getSelectedNode(e);
             if (node) {
+                if (self.toEditNode()) {
+                    self.toEditNode().selected = false;
+                }
                 self.toEditNode(new toEditNode(node));
                 self.toEditEdge(null);
                 return;
@@ -275,7 +246,7 @@ function storeCanvas(nodes, edges, bkImage) {
 
     self.addNodeClick = function (model, evt) {
         self.asSelectTool(evt);
-        self.clearSelected();
+        self.clearFirstToConnectNode();
         self.toEditEdge(null);
         self.currentOper = function (e) {
             var n = self.nodesManager.addNode(e.x, e.y);
@@ -286,7 +257,7 @@ function storeCanvas(nodes, edges, bkImage) {
 
     self.removePoint = function (model, evt) {
         self.asSelectTool(evt);
-        self.clearSelected();
+        self.clearFirstToConnectNode();
         self.toEditNode(null);
         self.toEditEdge(null);
         self.currentOper = function (e) {
@@ -308,21 +279,21 @@ function storeCanvas(nodes, edges, bkImage) {
         self.currentOper = function (e) {
             var node = self.getSelectedNode(e);
             if (!node) return;
-            if (self.selected()) {
-                var edge = self.edgesManager.addEdge(self.selected(), node);
+            if (self.firstToConnectNode()) {
+                var edge = self.edgesManager.addEdge(self.firstToConnectNode(), node);
                 if (!edge) {
-                    self.clearSelected();
+                    self.clearFirstToConnectNode();
                     return;
                 }
                 edge.draw(self.ctx);
                 self.toEditEdge(new toEditEdge(edge));
                 self.toEditNode(null);
-                self.clearSelected();
+                self.clearFirstToConnectNode();
                 return;
             }
             self.toEditEdge(null);
             self.toEditNode(new toEditNode(node));
-            self.selected(node);
+            self.firstToConnectNode(node);
         }
     };
 
@@ -368,13 +339,13 @@ function storeCanvas(nodes, edges, bkImage) {
         }
     }
 
-    self.clearSelected = function () {
-        self.selected(null);
+    self.clearFirstToConnectNode = function () {
+        self.firstToConnectNode(null);
     };
 
     self.save = function (model, evt) {
         self.asSelectTool(evt);
-        self.clearSelected();
+        self.clearFirstToConnectNode();
         //self.nodesManager.save();
         //self.edgesManager.save();
     };
@@ -394,57 +365,8 @@ function storeCanvas(nodes, edges, bkImage) {
 
 function viewModel() {
     var self = this;
-    self.travels = ko.observableArray();
-
-    self.toAddModel = ko.observable(new toAddModel());
-
-    self.addArticle = function () {
-        var arts = Enumerable.From(self.travels());
-        if (arts.Any(function (a) {
-            return a.id() === self.toAddModel().article()[0].data.pk;
-        })) {
-            var ar = arts.Single(function (a) {
-                return a.id() === self.toAddModel().article()[0].data.pk;
-            });
-            ar.amount(parseInt(ar.amount()) + parseInt(self.toAddModel().amount()));
-        } else {
-            self.travels.push(new travelDescriptionViewModel(self.toAddModel()));
-        }
-        self.toAddModel().article(null);
-        self.toAddModel().amount(null);
-        $("#articulo").val(null).trigger("change");;
-        $("#articulo").focus();
-    }
-
-    self.deleteArticle = function (vm) {
-        self.travels.remove(vm);
-    }
-
-    self.selectAll = function (t) {
-        var arts = Enumerable.From(self.travels());
-        arts.ForEach(function (vm) {
-            vm.selected(true);
-        });
-    }
-
-    self.actionsVisible = ko.computed(function () {
-        return self.travels().length > 0;
-    });
-
-    self.deleteSelectedVisible = ko.computed(function () {
-        return Enumerable.From(self.travels()).Any(function (a) {
-            return a.selected();
-        });
-    });
-
-    self.deleteSelected = function () {
-        self.travels.remove(function (a) {
-            return a.selected();
-        });
-    }
     self.edges = new edges();
     self.nodes = new nodes(self.edges);
-
     self.canvas = new storeCanvas(self.nodes, self.edges, "");
     self.nodeTypes = ko.observableArray([
         { value: "punto", text: "Punto" },
