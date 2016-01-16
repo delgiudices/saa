@@ -18,7 +18,7 @@ from django.contrib import admin
 from rest_framework import routers
 from django.views.generic import TemplateView
 from almacen import views
-from django.conf.urls import patterns, url
+from django.conf.urls import patterns
 from saa import settings
 
 router = routers.DefaultRouter()
@@ -28,6 +28,7 @@ router.register(r'robots', views.RobotViewSet)
 router.register(r'articulos', views.ArticuloViewSet)
 router.register(r'caminos', views.CaminoViewSet)
 router.register(r'nodo_articulo', views.NodoArticuloViewSet)
+router.register(r'viajes', views.ViajeViewSet)
 
 
 urlpatterns = [

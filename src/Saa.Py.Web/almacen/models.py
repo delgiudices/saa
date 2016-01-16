@@ -1,4 +1,6 @@
 from django.db import models
+from jsonfield import JSONField
+from dijkstar import Graph, find_path
 
 
 class Almacen(models.Model):
@@ -8,6 +10,19 @@ class Almacen(models.Model):
 
     nombre = models.CharField(max_length=80)
     mapa = models.ImageField(null=True, blank=True)
+
+    def setUpGraph(self):
+        graph = Graph()
+        for camino in Camino.objects.all():
+            graph.add_edge(
+                camino.desde.pk, camino.hasta.pk, {'cost': camino.distancia})
+        return graph
+
+    def camino_mas_cercano(self, desde, hasta):
+        graph = self.setUpGraph()
+        cost_func = lambda u, v, e, prev_e: e['cost']
+        path = find_path(graph, desde, hasta, cost_func=cost_func)
+        return path
 
 
 class Nodo(models.Model):
@@ -25,6 +40,9 @@ class Nodo(models.Model):
     nodos = models.ManyToManyField('Nodo', through='Camino')
     x = models.IntegerField()
     y = models.IntegerField()
+
+    def __unicode__(self):
+        return "%s:%s" % (self.pk, self.tipo)
 
 
 class Articulo(models.Model):
@@ -49,6 +67,9 @@ class Camino(models.Model):
     hasta = models.ForeignKey(Nodo, related_name='hasta')
     distancia = models.PositiveIntegerField()
 
+    def __unicode__(self):
+        return "%s - %s" % (self.desde.__unicode__(), self.hasta.__unicode__())
+
 
 class Robot(models.Model):
 
@@ -64,5 +85,57 @@ class Robot(models.Model):
 
 class Viaje(models.Model):
 
-    salida = models.ManyToManyField(Articulo, related_name="salida")
-    entrada = models.ManyToManyField(Articulo, related_name="entrada")
+    almacen = models.ForeignKey(Almacen)
+    articulos = models.ManyToManyField(Articulo, through='ArticuloViaje')
+    path = JSONField(null=True, blank=True)
+
+    def calculate_path(self, start, articulos):
+        data = {}
+        if len(articulos) == 0:
+            self.save()
+            return
+        for articulo in articulos:
+            nodos = Nodo.objects.filter(
+                nodo_articulo__articulo_id=articulo['pk'])
+            import pdb; pdb.set_trace()  # XXX BREAKPOINT
+            nodo_mas_cercano, peso = nodos[0], self.almacen.camino_mas_cercano(
+                start, nodos[0].pk)[3]
+            for nodo in nodos:
+                now_peso = self.almacen.camino_mas_cercano(start, nodo.pk)
+                if now_peso < peso:
+                    nodo_mas_cercano = nodo,
+                    peso = now_peso
+            data[articulo['pk']] = {
+                'peso': peso, 'nodo_mas_cercano': nodo_mas_cercano}
+
+        data_items = data.items()
+        min_articulo_key, peso = data_items[0][0], data_items[0][1]['peso']
+        for articulo_key, articulo_data in data.items():
+            if articulo_data['peso'] < peso:
+                min_articulo_key = articulo_key
+                peso = articulo_data['peso']
+
+        if self.path is None:
+            self.path = []
+        calculated_path = self.almacen.camino_mas_cercano(
+            start, data[min_articulo_key]['nodo_mas_cercano'].pk)
+        self.path.append({
+            'articulo': min_articulo_key, 'path': calculated_path[0]})
+        new_start = data[min_articulo_key]['nodo_mas_cercano'].pk
+        new_articulos = [
+            articulo for articulo in articulos
+            if articulo['pk'] != min_articulo_key]
+        self.calculate_path(new_start, new_articulos)
+
+
+class ArticuloViaje(models.Model):
+
+    choices = (
+        ('entrada', 'Entrada'),
+        ('salida', 'Salida'),
+    )
+
+    viaje = models.ForeignKey(Viaje)
+    articulo = models.ForeignKey(Articulo)
+    cantidad = models.PositiveIntegerField()
+    tipo = models.CharField(max_length=10, choices=choices)
