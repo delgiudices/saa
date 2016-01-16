@@ -158,7 +158,6 @@ function toEditNode(node) {
         self.node.x = self.x();
         self.node.y = self.y();
         self.node.articles = self.articles();
-
     };
 }
 
@@ -194,7 +193,7 @@ function storeCanvas(nodes, edges, bkImage) {
     self.edgesManager = edges;
     self.currentOper = function (e) { };
 
-    self.selected = ko.observable();
+    self.firstToConnectNode = ko.observable();
     self.toEditNode = ko.observable();
     self.toEditEdge = ko.observable();
     self.background = new background(bkImage);
@@ -223,10 +222,13 @@ function storeCanvas(nodes, edges, bkImage) {
 
     self.pointer = function (model, evt) {
         self.asSelectTool(evt);
-        self.clearSelected();
+        self.clearFirstToConnectNode();
         self.currentOper = function (e) {
             var node = self.getSelectedNode(e);
             if (node) {
+                if (self.toEditNode()) {
+                    self.toEditNode().selected = false;
+                }
                 self.toEditNode(new toEditNode(node));
                 self.toEditEdge(null);
                 return;
@@ -244,7 +246,7 @@ function storeCanvas(nodes, edges, bkImage) {
 
     self.addNodeClick = function (model, evt) {
         self.asSelectTool(evt);
-        self.clearSelected();
+        self.clearFirstToConnectNode();
         self.toEditEdge(null);
         self.currentOper = function (e) {
             var n = self.nodesManager.addNode(e.x, e.y);
@@ -255,7 +257,7 @@ function storeCanvas(nodes, edges, bkImage) {
 
     self.removePoint = function (model, evt) {
         self.asSelectTool(evt);
-        self.clearSelected();
+        self.clearFirstToConnectNode();
         self.toEditNode(null);
         self.toEditEdge(null);
         self.currentOper = function (e) {
@@ -277,21 +279,21 @@ function storeCanvas(nodes, edges, bkImage) {
         self.currentOper = function (e) {
             var node = self.getSelectedNode(e);
             if (!node) return;
-            if (self.selected()) {
-                var edge = self.edgesManager.addEdge(self.selected(), node);
+            if (self.firstToConnectNode()) {
+                var edge = self.edgesManager.addEdge(self.firstToConnectNode(), node);
                 if (!edge) {
-                    self.clearSelected();
+                    self.clearFirstToConnectNode();
                     return;
                 }
                 edge.draw(self.ctx);
                 self.toEditEdge(new toEditEdge(edge));
                 self.toEditNode(null);
-                self.clearSelected();
+                self.clearFirstToConnectNode();
                 return;
             }
             self.toEditEdge(null);
             self.toEditNode(new toEditNode(node));
-            self.selected(node);
+            self.firstToConnectNode(node);
         }
     };
 
@@ -337,13 +339,13 @@ function storeCanvas(nodes, edges, bkImage) {
         }
     }
 
-    self.clearSelected = function () {
-        self.selected(null);
+    self.clearFirstToConnectNode = function () {
+        self.firstToConnectNode(null);
     };
 
     self.save = function (model, evt) {
         self.asSelectTool(evt);
-        self.clearSelected();
+        self.clearFirstToConnectNode();
         //self.nodesManager.save();
         //self.edgesManager.save();
     };
