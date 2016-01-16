@@ -1,4 +1,5 @@
-﻿function travelDescriptionViewModel(model) {
+﻿//TODO: Hacer que solo haya una entrada y una salida.
+function travelDescriptionViewModel(model) {
     var self = this;
     self.selected = ko.observable();
     self.id = ko.observable(model.article()[0].data.pk);
@@ -140,22 +141,6 @@ function nodes(edges) {
     self.remove = function (n) {
         self.nodes.remove(n);
         self.edges.removeByNode(n);
-
-        //TODO: Use update funcion. sucks... but it's the way to go :(
-        //TODO: Load the map when saved
-        //TODO: List maps
-
-        //TODO: Add edges distance
-        //TODO: Edit map funcionality
-        //TODO: Add server side validations
-        //TODO: Add client side validations
-        //TODO: Avoid edges to self node
-        //TODO: Travels should added to a queue
-
-        //TODO: Center lines
-        //TODO: Center (Point) related to mouse position when adding nodes
-        //TODO: Style points by type
-        //TODO: Make a resume of the point on mouse over
     }
 
     self.save = function () {
@@ -189,7 +174,7 @@ function toEditNode(node) {
         self.node.x = self.x();
         self.node.y = self.y();
         self.node.articles = self.articles();
-        
+
     };
 }
 

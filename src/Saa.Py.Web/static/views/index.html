@@ -20,27 +20,26 @@
     .weirdAmount {
         width: 30%;
     }
-
-    #canvas {
-        /*NEVER SET WIDTH AND HEIGHT HERE, AT LEAST YOU THAT U KNOW REALLY WHAT UR DOING*/
-        border: 1px solid black;
-    }
 </style>
 </head>
 <body>
 <div class="container-fluid">
     <h2>Ejecutar Viaje</h2>
     <div class="row">
-        <div class="col-md-3">
+        <div class="col-md-6">
             <form method="post" role="form">
                 <div class="row" data-bind="with: toAddModel ">
-                    <div class="form-group col-md-8">
+                    <div class="form-group col-md-4">
                         <label for="articulo" class="control-label">Artículo</label>
                         <select type="text" class="form-control" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="articulo" data-bind="select2Data: article, select2: $root.spec, optionsText: 'nombre'"></select>
                     </div>
                     <div class="form-group col-md-4">
                         <label for="cantidad" class="control-label">Cantidad</label>
                         <input type="number" class="form-control" id="cantidad" data-bind="value: amount">
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label for="tipo" class="control-label">Tipo:</label>
+                        <select type="text" class="form-control" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="tipo" data-bind="value: type, options: $root.travelsTypes, optionsText: 'text'"></select>
                     </div>
                 </div>
                 <div class="row clearfix">
@@ -62,15 +61,15 @@
                 </div>
                 <div data-bind="foreach: travels" id="travels">
                     <div class="row">
-                        <div class="col-md-12">
+                        <div class="col-md-8">
                             <div>
                                 <div class="panel panel-default">
                                     <div class="panel-body">
-                                        <input type="checkbox" data-bind="checked: selected">
+                                        <input type="checkbox" data-bind="checked: selected" />
                                         <span data-bind="text: id"></span> -
-                                        <span data-bind="text: description"></span> -
-                                        <span data-bind="text: articleNodeName"></span>
-                                        <input type="number" data-bind="value: amount" class="weirdAmount"/>
+                                        <span data-bind="text: description"></span> - 
+                                        <span data-bind="text: type().text"></span>
+                                        <input type="number" data-bind="value: amount" class="weirdAmount" />
                                         <button type="button" class="close" aria-label="Close" data-bind="click: $root.deleteArticle">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
@@ -83,18 +82,7 @@
                 <button type="button" class="btn btn-success" data-bind="visible: actionsVisible">Ejecutar Viaje</button>
                 <button type="button" class="btn btn-default" data-bind="visible: actionsVisible">Guardar Configuración</button>
             </form>
-        </div>
-        <div class="col-md-9">
-            <div class="row">
-                <div class="col-md-12">
-                    <i class="glyphicon glyphicon-record" data-bind="click: canvas.addNodeClick"></i>
-                    <i class="glyphicon glyphicon-resize-vertical" data-bind="click: canvas.connectionModeClick"></i>
-                </div>
-            </div>
-            <canvas class="storeMap" id="canvas" width="950px" height="400px">
-                Your navigator doesn't support canvas :(
-            </canvas>
-        </div>
+        </div>        
     </div>
 </div>
     <img src="point.png" id="node" style="display: none" />
@@ -116,7 +104,6 @@
     <script type="text/javascript">
     $(function () {
         var vm = new viewModel();
-        vm.canvas.init(document.getElementById("canvas"));
         ko.applyBindings(vm);
     });
 </script>
