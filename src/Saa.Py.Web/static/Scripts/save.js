@@ -1,20 +1,4 @@
-﻿//TODO: Hacer que solo haya una entrada y una salida.
-function travelDescriptionViewModel(model) {
-    var self = this;
-    self.selected = ko.observable();
-    self.id = ko.observable(model.article()[0].data.pk);
-    self.description = ko.observable(model.article()[0].data.nombre);
-    self.articleNodeName = ko.observable(model.article()[0].node);
-    self.amount = ko.observable(model.amount());
-}
-
-function toAddModel() {
-    var self = this;
-    self.article = ko.observable();
-    self.amount = ko.observable();
-}
-
-function guid() {
+﻿function guid() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
         var r = crypto.getRandomValues(new Uint8Array(1))[0] % 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
@@ -206,10 +190,10 @@ function background(src, onload) {
 function storeCanvas(nodes, edges, bkImage) {
     var self = this;
     self.ctx = null;
-    self.mode = null;
     self.nodesManager = nodes;
     self.edgesManager = edges;
     self.currentOper = function (e) { };
+
     self.selected = ko.observable();
     self.toEditNode = ko.observable();
     self.toEditEdge = ko.observable();
@@ -379,57 +363,8 @@ function storeCanvas(nodes, edges, bkImage) {
 
 function viewModel() {
     var self = this;
-    self.travels = ko.observableArray();
-
-    self.toAddModel = ko.observable(new toAddModel());
-
-    self.addArticle = function () {
-        var arts = Enumerable.From(self.travels());
-        if (arts.Any(function (a) {
-            return a.id() === self.toAddModel().article()[0].data.pk;
-        })) {
-            var ar = arts.Single(function (a) {
-                return a.id() === self.toAddModel().article()[0].data.pk;
-            });
-            ar.amount(parseInt(ar.amount()) + parseInt(self.toAddModel().amount()));
-        } else {
-            self.travels.push(new travelDescriptionViewModel(self.toAddModel()));
-        }
-        self.toAddModel().article(null);
-        self.toAddModel().amount(null);
-        $("#articulo").val(null).trigger("change");;
-        $("#articulo").focus();
-    }
-
-    self.deleteArticle = function (vm) {
-        self.travels.remove(vm);
-    }
-
-    self.selectAll = function (t) {
-        var arts = Enumerable.From(self.travels());
-        arts.ForEach(function (vm) {
-            vm.selected(true);
-        });
-    }
-
-    self.actionsVisible = ko.computed(function () {
-        return self.travels().length > 0;
-    });
-
-    self.deleteSelectedVisible = ko.computed(function () {
-        return Enumerable.From(self.travels()).Any(function (a) {
-            return a.selected();
-        });
-    });
-
-    self.deleteSelected = function () {
-        self.travels.remove(function (a) {
-            return a.selected();
-        });
-    }
     self.edges = new edges();
     self.nodes = new nodes(self.edges);
-
     self.canvas = new storeCanvas(self.nodes, self.edges, "");
     self.nodeTypes = ko.observableArray([
         { value: "punto", text: "Punto" },
