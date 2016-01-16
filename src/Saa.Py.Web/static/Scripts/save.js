@@ -5,22 +5,25 @@
     });
 }
 
-function node(x, y, img) {
+function node(x, y) {
     var self = this;
     self.name = "";
     self.x = x;
     self.y = y;
     self.articles = [];
-    self.img = img;
+    self.img = function () {
+        return self.selected ? document.getElementById("selectedNode") : document.getElementById("node");
+    };
     self.guid = guid();
     self.nodes = [];
+    self.selected = false;
 
     self.isPointInside = function (x, y) {
         return (x >= self.x && x <= self.x + self.img.width && y >= self.y && y <= self.y + self.img.height);
     }
 
     self.draw = function (ctx) {
-        ctx.drawImage(self.img, self.x, self.y);
+        ctx.drawImage(self.img(), self.x, self.y);
     };
 }
 
@@ -117,7 +120,7 @@ function nodes(edges) {
     self.edges = edges;
 
     self.addNode = function (x, y) {
-        var n = new node(x, y, document.getElementById("node"));
+        var n = new node(x, y);
         self.nodes.push(n);
         return n;
     }
@@ -194,7 +197,7 @@ function storeCanvas(nodes, edges, bkImage) {
     self.currentOper = function (e) { };
 
     self.firstToConnectNode = ko.observable();
-    self.toEditNode = ko.observable();
+    self.toEditNode = ko.observable(null);
     self.toEditEdge = ko.observable();
     self.background = new background(bkImage);
     self.fileImage = ko.observable();
@@ -249,11 +252,17 @@ function storeCanvas(nodes, edges, bkImage) {
         self.clearFirstToConnectNode();
         self.toEditEdge(null);
         self.currentOper = function (e) {
-            var n = self.nodesManager.addNode(e.x, e.y);
-            self.toEditNode(new toEditNode(n));
-            n.draw(self.ctx);
+            self.selectNode(self.nodesManager.addNode(e.x, e.y));
         }
     };
+
+    self.selectNode = function (n) {
+        if (self.toEditNode())
+            self.toEditNode().node.selected = false;
+        n.selected = true;
+        self.toEditNode(new toEditNode(n));
+        self.redraw();
+    }
 
     self.removePoint = function (model, evt) {
         self.asSelectTool(evt);
