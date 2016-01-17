@@ -5,23 +5,25 @@
     });
 }
 
-function node(x, y) {
+function node(n) {
     var self = this;
-    self.name = "";
-    self.x = x;
-    self.y = y;
-    self.articles = [];
+    self.pk = n.pk;
+    self.name = n.nombre;
+    self.x = n.x;
+    self.y = n.y;
+    self.store = n.almacen;
+    self.type = n.tipo;
+    self.articles = ko.observableArray([]);
+    self.guid = guid();
+    self.nodes = ko.observableArray(n.nodes);
+
+    self.selected = false;
     self.img = function () {
         return self.selected ? document.getElementById("selectedNode") : document.getElementById("node");
     };
-    self.guid = guid();
-    self.nodes = [];
-    self.selected = false;
-
     self.isPointInside = function (x, y) {
-        return (x >= self.x && x <= self.x + self.img.width && y >= self.y && y <= self.y + self.img.height);
+        return (x >= self.x && x <= self.x + self.img().width && y >= self.y && y <= self.y + self.img().height);
     }
-
     self.draw = function (ctx) {
         ctx.drawImage(self.img(), self.x, self.y);
     };
@@ -32,6 +34,7 @@ function edge(n1, n2) {
     self.node1 = n1;
     self.node2 = n2;
     self.distance = null;
+    self.selected = false;
 
     self.isPointInside = function (x, y) {
         //http://stackoverflow.com/a/24044684
@@ -66,7 +69,14 @@ function edge(n1, n2) {
         ctx.beginPath();
         ctx.moveTo(self.node1.x, self.node1.y);
         ctx.lineTo(self.node2.x, self.node2.y);
+        ctx.lineWidth = 2;
+        ctx.save();
+        if (self.selected)
+            ctx.strokeStyle = 'green';
+        else
+            ctx.restore();
         ctx.stroke();
+        ctx.restore();
     };
 }
 
@@ -119,19 +129,112 @@ function nodes(edges) {
     self.nodes = ko.observableArray();
     self.edges = edges;
 
-    self.addNode = function (x, y) {
-        var n = new node(x, y);
-        self.nodes.push(n);
-        return n;
+    self.addNode = function (n) {
+        var n_ = new node(n);
+        self.nodes.push(n_);
+        return n_;
     }
 
     self.remove = function (n) {
+        Enumerable.From(self.nodes()).Where(function (n2) {
+            return Enumerable.From(n2.nodes()).Any(function (n3) {
+                return n3.guid === n.guid;
+            });
+        }).ForEach(function (n2) {
+            n2.nodes.remove(n);
+        });
         self.nodes.remove(n);
         self.edges.removeByNode(n);
+        delete n;
     }
 
     self.save = function () {
+        var nodos = Enumerable.From(self.nodes()).Select(function (n) {
+            return {
+                almacen: n.store,
+                pk: n.pk,
+                tipo: n.type,
+                x: n.x,
+                y: n.y,
+                nombre: n.name
+            };
+        }).ToArray();
 
+        var ajaxs = function () {
+            var a = [];
+            $.each(nodos, function (idx, n) {
+                a.push($.ajax({
+                    type: n.pk ? 'put' : 'post',
+                    url: document.location.origin + "/nodos/" + (n.pk ? n.pk + "/" : ''),
+                    data: JSON.stringify(n),
+                    contentType: "application/json",
+                    async: true
+                }));
+            });
+            return a;
+        }
+
+        $.when($, ajaxs()).then(function () {
+            self.load();
+        });
+
+        var nodeArt = Enumerable.From(self.nodes()).SelectMany(function (n) {
+            return Enumerable.From(n.articles()).Select(function (nA) {
+                return {
+                    nodo: n.pk,
+                    articulo: nA.article().data.pk,
+                    cantidad: nA.actualAmount(),
+                    capacidad: nA.capacity()
+                };
+            });
+        }).ToArray();
+
+        $.each(nodeArt, function (i, nA) {
+            $.ajax({
+                type: nA.pk ? 'put' : 'post',
+                url: document.location.origin + "/nodo_articulo/" + (nA.pk ? nA.pk + "/" : ''),
+                data: JSON.stringify(nA),
+                contentType: "application/json",
+                async: true,
+                success: function (data) {
+                    self.load();
+                }
+            });
+        });
+    }
+
+    self.load = function () {
+
+        $.get("/nodos/", function (nodes) {
+            self.nodes.removeAll();
+
+            var ajaxs = function () {
+                var b = [];
+                $.each(nodes, function (i, n) {
+                    var inside = this;
+                    inside.n = self.addNode(n);
+                    b.push($.get("/nodo_articulo/?nodo=" + inside.n.pk));
+                });
+                return b;
+            }
+
+            $.when.apply($, ajaxs).then(function (n) {
+                $.each(self.nodes(), function (i, n) {
+                    n.articles.removeAll();
+                    $.each(nA, function (i, n_art) {
+                        $.get("/articulos/" + n_art.articulo, function (art) {
+                            inside.n.articles.push({
+                                pk: n_art.pk,
+                                article: art,
+                                capacity: n_art.capacidad,
+                                actualAmount: n_art.cantidad,
+                                initialOption: [art]
+                            });
+                        })
+                    });
+                });
+            });
+        });
     }
 }
 
@@ -148,7 +251,7 @@ function toEditNode(node) {
     self.type = ko.observable(node ? node.type : "");
     self.x = ko.observable(node ? node.x : null);
     self.y = ko.observable(node ? node.y : null);
-    self.articles = ko.observableArray(node.articles);
+    self.articles = ko.observableArray(node.articles());
     self.node = node;
 
     self.addArticle = function () {
@@ -160,51 +263,47 @@ function toEditNode(node) {
         self.node.type = self.type();
         self.node.x = self.x();
         self.node.y = self.y();
-        self.node.articles = self.articles();
+        self.node.articles(self.articles());
     };
 }
 
 function toEditEdge(edge) {
     var self = this;
-    self.node1 = ko.observable(edge.node1);
-    self.node2 = ko.observable(edge.node2);
     self.distance = ko.observable(edge.distance);
     self.edge = edge;
 
     self.persist = function () {
-        self.edge.node1 = self.node1();
-        self.edge.node2 = self.node2();
         self.edge.distance = self.distance();
     };
 }
 
-function background(src, onload) {
+function background(onload) {
     var self = this;
     self.img = document.createElement('img');
-    self.img.src = src;
     self.img.onload = onload,
+
+    self.update = function (src) {
+        self.img.src = src;
+    }
 
     self.draw = function (ctx) {
         ctx.drawImage(self.img, 0, 0, ctx.canvas.width, ctx.canvas.height);
     }
 }
 
-function storeCanvas(nodes, edges, bkImage) {
+function storeCanvas(nodes, edges) {
     var self = this;
     self.ctx = null;
     self.nodesManager = nodes;
     self.edgesManager = edges;
     self.currentOper = function (e) { };
-
     self.firstToConnectNode = ko.observable();
     self.toEditNode = ko.observable(null);
     self.toEditEdge = ko.observable();
-    self.background = new background(bkImage);
     self.fileImage = ko.observable();
-
     self.redraw = function () {
         self.ctx.clearRect(0, 0, self.ctx.canvas.width, self.ctx.canvas.height);
-        self.background.draw(self.ctx);
+        self.background.draw(self.ctx, self.redraw);
 
         $.each(self.nodesManager.nodes(), function (i, e) {
             e.draw(self.ctx);
@@ -213,12 +312,12 @@ function storeCanvas(nodes, edges, bkImage) {
             e.draw(self.ctx);
         });
     }
+    self.background = new background(self.redraw);
 
     self.fileImage.subscribe(function (a) {
         var reader = new FileReader();
         reader.onload = function (e) {
-            self.background = new background(e.target.result);
-            self.redraw();
+            self.background.update(e.target.result);
         }
         reader.readAsDataURL($("#mapImage").prop('files')[0]);
     });
@@ -229,58 +328,30 @@ function storeCanvas(nodes, edges, bkImage) {
         self.currentOper = function (e) {
             var node = self.getSelectedNode(e);
             if (node) {
-                if (self.toEditNode()) {
-                    self.toEditNode().selected = false;
-                }
-                self.toEditNode(new toEditNode(node));
-                self.toEditEdge(null);
-                return;
-            }
-
-            self.toEditNode(null);
-            var edge = self.getSelectedEdge(e);
-            if (edge) {
-                self.toEditEdge(new toEditEdge(edge));
+                self.selectNode(node);
+                self.unselectEdge();
             } else {
-                self.toEditEdge(null);
+                var edge = self.getSelectedEdge(e);
+                if (edge) {
+                    self.unselectNode();
+                    self.selectEdge(edge);
+                } else {
+                    self.unselectEdge();
+                    self.unselectNode();
+                }
             }
+            self.redraw();
         };
     }
 
     self.addNodeClick = function (model, evt) {
         self.asSelectTool(evt);
         self.clearFirstToConnectNode();
-        self.toEditEdge(null);
+        self.unselectEdge();
         self.currentOper = function (e) {
-            self.selectNode(self.nodesManager.addNode(e.x, e.y));
+            self.selectNode(self.nodesManager.addNode({ x: e.x, y: e.y, tipo: "punto", almacen: 1 }));
         }
     };
-
-    self.selectNode = function (n) {
-        if (self.toEditNode())
-            self.toEditNode().node.selected = false;
-        n.selected = true;
-        self.toEditNode(new toEditNode(n));
-        self.redraw();
-    }
-
-    self.removePoint = function (model, evt) {
-        self.asSelectTool(evt);
-        self.clearFirstToConnectNode();
-        self.toEditNode(null);
-        self.toEditEdge(null);
-        self.currentOper = function (e) {
-            var node = self.getSelectedNode(e);
-            var edge = self.getSelectedEdge(e);
-            if (node) {
-                self.nodesManager.remove(node);
-            }
-            if (edge) {
-                self.edgesManager.remove(edge);
-            }
-            self.redraw();
-        }
-    }
 
     self.connectionModeClick = function (model, evt) {
         self.asSelectTool(evt);
@@ -292,19 +363,66 @@ function storeCanvas(nodes, edges, bkImage) {
                 var edge = self.edgesManager.addEdge(self.firstToConnectNode(), node);
                 if (!edge) {
                     self.clearFirstToConnectNode();
-                    return;
+                    self.unselectNode();
+                } else {
+                    self.selectEdge(edge);
+                    self.unselectNode();
+                    self.clearFirstToConnectNode();
                 }
-                edge.draw(self.ctx);
-                self.toEditEdge(new toEditEdge(edge));
-                self.toEditNode(null);
-                self.clearFirstToConnectNode();
-                return;
+            } else {
+                self.unselectEdge();
+                self.selectNode(node);
+                self.firstToConnectNode(node);
             }
-            self.toEditEdge(null);
-            self.toEditNode(new toEditNode(node));
-            self.firstToConnectNode(node);
         }
     };
+
+    self.removePoint = function (model, evt) {
+        self.asSelectTool(evt);
+        self.clearFirstToConnectNode();
+        self.unselectEdge();
+        self.unselectNode();
+        self.currentOper = function (e) {
+            var node = self.getSelectedNode(e);
+            var edge = null;
+            if (node) {
+                self.nodesManager.remove(node);
+            }
+            else if (edge = self.getSelectedEdge(e)) {
+                self.edgesManager.remove(edge);
+            }
+            self.redraw();
+        }
+        self.redraw();
+    }
+
+    self.selectEdge = function (e) {
+        self.unselectEdge();
+        e.selected = true;
+        self.toEditEdge(new toEditEdge(e));
+        self.redraw();
+    }
+
+    self.unselectEdge = function () {
+        if (!self.toEditEdge()) return;
+        self.toEditEdge().edge.selected = false;
+        self.toEditEdge(null);
+        self.redraw();
+    };
+
+    self.selectNode = function (n) {
+        self.unselectNode();
+        n.selected = true;
+        self.toEditNode(new toEditNode(n));
+        self.redraw();
+    }
+
+    self.unselectNode = function () {
+        if (!self.toEditNode()) return;
+        self.toEditNode().node.selected = false;
+        self.toEditNode(null);
+        self.redraw();
+    }
 
     self.asSelectTool = function (e) {
         var active = $(".activeTool");
@@ -350,39 +468,67 @@ function storeCanvas(nodes, edges, bkImage) {
 
     self.clearFirstToConnectNode = function () {
         self.firstToConnectNode(null);
-    };
+    }
 
     self.save = function (model, evt) {
         self.asSelectTool(evt);
-        self.clearFirstToConnectNode();
-        //self.nodesManager.save();
-        //self.edgesManager.save();
-    };
+        if ($("#mapImage").prop('files')[0]) {
+            var formData = new FormData();
+
+            formData.append("nombre", "nombre");
+            formData.append("mapa", $("#mapImage").prop('files')[0]);
+
+            $.ajax({
+                url: document.location.origin + "/almacenes/" + 1 + "/",
+                type: "PUT",
+                data: formData,
+                enctype: 'multipart/form-data',
+                async: true,
+                success: function (msg) {
+                    alert(msg + " Guardado Exitosamente!");
+                },
+                cache: false,
+                contentType: false,
+                processData: false
+            });
+        }
+
+
+        self.nodesManager.save();
+        self.redraw();
+    }
 
     self.init = function (can) {
         self.ctx = can.getContext('2d');
-        self.background.draw(self.ctx);
-
+        self.nodesManager.load();
+        self.redraw();
         $(self.ctx.canvas).click(function (e) {
             var x = e.pageX - this.offsetLeft - $(this).parent().offset().left;
             var y = e.pageY - this.offsetTop - $(this).parent().offset().top;
 
             self.currentOper({ x, y });
         });
-    };
+    }
 };
 
 function viewModel() {
     var self = this;
+
     self.edges = new edges();
     self.nodes = new nodes(self.edges);
-    self.canvas = new storeCanvas(self.nodes, self.edges, "");
+    self.canvas = new storeCanvas(self.nodes, self.edges);
     self.nodeTypes = ko.observableArray([
         { value: "punto", text: "Punto" },
         { value: "almacen", text: "Almacenamiento" },
         { value: "entrada", text: "Entrada" },
         { value: "salida", text: "Salida" }
     ]);
+
+    $.get(document.location.origin + "/almacenes/" + 1 + "/", function (store) {
+        if (store.mapa)
+            self.canvas.background.img.src = store.mapa;
+        self.canvas.redraw();
+    });
 
     self.spec = {
         ajax: {
@@ -391,9 +537,14 @@ function viewModel() {
             delay: 250,
             processResults: function (data, page) {
                 return {
-                    results: $.map(data, function (item) {
-                        return { id: item.pk, text: item.nombre, data: item };
-                    })
+                    results:
+                        $.map(data, function (i) {
+                            return {
+                                id: i.pk,
+                                text: i.nombre,
+                                data: i
+                            };
+                        })
                 };
             }
         },

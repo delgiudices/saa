@@ -21,97 +21,98 @@
     </style>
 </head>
 <body>
-<div class="container-fluid">
-    <h2>Mapa Almacen</h2>
-    <div class="row">
-        <div class="col-md-8">
-            <div class="row">
-                <div class="col-md-12">
-                    <i class="fa fa-mouse-pointer activeTool" data-bind="click: canvas.pointer"></i>
-                    <i class="fa fa-map-pin" data-bind="click: canvas.addNodeClick"></i>
-                    <i class="fa fa-road" data-bind="click: canvas.connectionModeClick"></i>
-                    <i class="fa fa-minus-circle" data-bind="click: canvas.removePoint"></i>
-                    <i class="glyphicon glyphicon-floppy-disk" data-bind="click: canvas.save"></i>
+    <div id="test"></div>
+    <div class="container-fluid">
+        <h2>Mapa Almacen</h2>
+        <div class="row">
+            <div class="col-md-8">
+                <div class="row">
+                    <div class="col-md-12">
+                        <i class="fa fa-mouse-pointer" data-bind="click: canvas.pointer"></i>
+                        <i class="fa fa-map-pin" data-bind="click: canvas.addNodeClick"></i>
+                        <i class="fa fa-road" data-bind="click: canvas.connectionModeClick"></i>
+                        <i class="fa fa-minus-circle" data-bind="click: canvas.removePoint"></i>
+                        <i class="glyphicon glyphicon-floppy-disk" data-bind="click: canvas.save"></i>
+                    </div>
                 </div>
+                <canvas class="storeMap" id="canvas" width="800" height="600">
+                    Your navigator doesn't support canvas :(
+                </canvas>
             </div>
-            <canvas class="storeMap" id="canvas" width="800" height="600">
-                Your navigator doesn't support canvas :(
-            </canvas>
-        </div>
-        <div class="col-md-4">
-            <form role="form" class="form-horizontal" data-bind="with: canvas.toEditNode">
-                <div class="panel panel-default">
-                    <div class="panel-body">
-                        <h2>Nodo</h2>
-                        <div class="form-group col-md-12">
-                            <label class="control-label" for="type">Tipo:</label>
-                            <select class="form-control" id="type" data-bind="value: type, options: $root.nodeTypes, optionsText: 'text', optionsValue:'value'"></select>
-                        </div>
-                        <div class="form-group col-md-12" data-bind="visible: type() !== 'punto'">
-                            <label class="control-label" for="nombre">Nombre:</label>
-                            <input type="text" class="form-control" id="nombre" placeholder="Nombre" data-bind="value: name" />
-                        </div>
-                        <div class="row" data-bind="visible: type() === 'almacen'">
+            <div class="col-md-4">
+                <form role="form" class="form-horizontal" data-bind="with: canvas.toEditNode">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <h2>Nodo</h2>
+                            <div class="form-group col-md-12">
+                                <label class="control-label" for="type">Tipo:</label>
+                                <select class="form-control" id="type" data-bind="value: type, options: $root.nodeTypes, optionsText: 'text', optionsValue:'value'"></select>
+                            </div>
+                            <div class="form-group col-md-12" data-bind="visible: type() !== 'punto'">
+                                <label class="control-label" for="nombre">Nombre:</label>
+                                <input type="text" class="form-control" id="nombre" placeholder="Nombre" data-bind="value: name" />
+                            </div>
+                            <div class="row" data-bind="visible: type() === 'almacen'">
+                                <div class="col-md-12">
+                                    <h3>Artículos</h3>
+                                    <i class="glyphicon glyphicon-plus-sign" data-bind="click: addArticle"></i>
+                                </div>
+                            </div>
+                            <div data-bind="foreach: articles, visible: type()==='almacen' ">
+                                <div class="row">
+                                    <div class="form-group  col-md-4">
+                                        <label for="articulo" class="control-label">Artículo:</label>
+                                        <select type="text" class="form-control" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="articulo" data-bind="select2Data: article, select2: $root.spec, optionsText: 'nombre'"></select>
+                                    </div>
+                                    <div class="form-group col-md-4">
+                                        <label for="capacidad" class="control-label">Capacidad:</label>
+                                        <input type="number" class="form-control" id="capacidad" data-bind="value: capacity" min="1">
+                                    </div>
+                                    <div class="form-group col-md-3">
+                                        <label for="cantidad" class="control-label">Cantidad:</label>
+                                        <input type="number" class="form-control" id="cantidad" data-bind="value: actualAmount" min="0">
+                                    </div>
+                                    <div class="col-md-1">
+                                        <i class="glyphicon glyphicon-minus-sign" style="color: pink" data-bind="click: $root.canvas.deleteArticle"></i>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="col-md-12">
-                                <h3>Artículos</h3>
-                                <i class="glyphicon glyphicon-plus-sign" data-bind="click: addArticle"></i>
+                                <p data-bind="text: 'Posición: ' + x() + ', ' + y()"></p>
+                            </div>
+                            <div class="col-md-12">
+                                <button class="btn btn-primary" data-bind="click: $root.canvas.saveToEdit">Guardar</button>
+                                <button class="btn btn-default" data-bind="click: $root.canvas.cancelToEdit">Cancelar</button>
                             </div>
                         </div>
-                        <div data-bind="foreach: articles, visible: type()==='almacen' ">
-                            <div class="row">
-                                <div class="form-group  col-md-4">
-                                    <label for="articulo" class="control-label">Artículo:</label>
-                                    <select type="text" class="form-control" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="articulo" data-bind="select2Data: article, select2: $root.spec, optionsText: 'nombre'"></select>
-                                </div>
-                                <div class="form-group col-md-4">
-                                    <label for="capacidad" class="control-label">Capacidad:</label>
-                                    <input type="number" class="form-control" id="capacidad" data-bind="value: capacity" min="1">
-                                </div>
-                                <div class="form-group col-md-3">
-                                    <label for="cantidad" class="control-label">Cantidad:</label>
-                                    <input type="number" class="form-control" id="cantidad" data-bind="value: actualAmount" min="0">
-                                </div>
-                                <div class="col-md-1">
-                                    <i class="glyphicon glyphicon-minus-sign" style="color: pink" data-bind="click: $root.canvas.deleteArticle"></i>
-                                </div>
+                    </div>
+                </form>
+
+                <form role="form" class="form-horizontal" data-bind="with: canvas.toEditEdge">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <h2>Camino</h2>
+                            <div class="form-group col-md-12">
+                                <label class="control-label" for="distancia">Distancia:</label>
+                                <input type="number" class="form-control" id="distancia" placeholder="Distancia" data-bind="value: distance" min="1" />
+                            </div>
+                            <div class="col-md-12">
+                                <button class="btn btn-primary" data-bind="click: $root.canvas.saveToEditEdge">Guardar</button>
+                                <button class="btn btn-default" data-bind="click: $root.canvas.cancelToEditEdge">Cancelar</button>
                             </div>
                         </div>
-
-                        <div class="col-md-12">
-                            <p data-bind="text: 'Posición: ' + x() + ', ' + y()"></p>
-                        </div>
-                        <div class="col-md-12">
-                            <button class="btn btn-primary" data-bind="click: $root.canvas.saveToEdit">Guardar</button>
-                            <button class="btn btn-default" data-bind="click: $root.canvas.cancelToEdit">Cancelar</button>
-                        </div>
                     </div>
-                </div>
-            </form>
-
-            <form role="form" class="form-horizontal" data-bind="with: canvas.toEditEdge">
-                <div class="panel panel-default">
-                    <div class="panel-body">
-                        <h2>Camino</h2>
-                        <div class="form-group col-md-12">
-                            <label class="control-label" for="distancia">Distancia:</label>
-                            <input type="number" class="form-control" id="distancia" placeholder="Distancia" data-bind="value: distance"min="1"/>
-                        </div>
-                        <div class="col-md-12">
-                            <button class="btn btn-primary" data-bind="click: $root.canvas.saveToEditEdge">Guardar</button>
-                            <button class="btn btn-default" data-bind="click: $root.canvas.cancelToEditEdge">Cancelar</button>
-                        </div>
-                    </div>
-                </div>
-            </form>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <label for="mapImage">Imagen del mapa:</label>
+                <input type="file" class="form-control" id="mapImage" data-bind="value: canvas.fileImage" />
+            </div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-md-4">
-            <label for="mapImage">Imagen del mapa:</label>
-            <input type="file" class="form-control" id="mapImage" data-bind="value: canvas.fileImage"/>
-        </div>
-    </div>
-</div>
 
     <img src="point.png" id="node" style="display: none" alt="image" />
     <img src="selectedPoint.png" id="selectedNode" style="display: none" />
@@ -124,8 +125,10 @@
     <script src="knockout-3.4.0.js"></script>
     <script src="select2.min.js"></script>
     <script src="knockout-select2.min.js"></script>
+    <!--script src="datajs-1.1.3.min.js"></script>
     <script src="jaydata.min.js"></script>
-    <script src="jaydatamodules/knockout.min.js"></script>
+    <script src="jaydataproviders/WebApiProvider.min.js"></script>
+    <script src="jaydatamodules/knockout.min.js"></script--!>
     <!-- Dependecies -->
 
     <script src="save.js"></script>

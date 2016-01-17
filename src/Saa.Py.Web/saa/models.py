@@ -17,6 +17,7 @@ class Nodo(models.Model):
         ('almacen', 'Almacen'),
     )
 
+    nombre = models.CharField(max_length=80, null=True),
     almacen = models.ForeignKey(Almacen)
     tipo = models.CharField(choices=choices, max_length=80)
     articulos = models.ManyToManyField('Articulo', through='Nodo_Articulo')

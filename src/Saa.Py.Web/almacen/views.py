@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from almacen.models import(
     Almacen, Nodo, Articulo, Robot, Camino, Nodo_Articulo, Viaje,
     ArticuloViaje)
-
+from url_filter.integrations.drf import *
 # Create your views here.
 
 
@@ -44,7 +44,8 @@ class NodoArticuloViewSet(ModelViewSet):
 
     serializer_class = Nodo_ArticuloSerializer
     queryset = Nodo_Articulo.objects.all()
-
+    filter_backends = [DjangoFilterBackend]
+    filter_fields = ['nodo']
 
 class ViajeViewSet(ModelViewSet):
 

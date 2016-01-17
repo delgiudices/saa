@@ -14,7 +14,7 @@ class AlmacenSerializer(ModelSerializer):
 class NodoSerializer(ModelSerializer):
 
     class Meta:
-        fields = ('pk', 'almacen', 'tipo', 'articulos', 'nodos', 'x', 'y')
+        fields = ('pk', 'nombre', 'almacen', 'tipo', 'articulos', 'nodos', 'x', 'y')
         model = Nodo
 
 
