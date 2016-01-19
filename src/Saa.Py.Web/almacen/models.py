@@ -123,12 +123,12 @@ class Viaje(models.Model):
         for key, node_key in enumerate(calculated_path[0]):
             try:
                 camino = Camino.objects.get(
-                    desde_id=node_key, hasta_id=node_key+1)
+                    desde_id=node_key, hasta_id=calculated_path[0][key + 1])
                 edges.append(camino.pk)
             except:
                 try:
                     camino = Camino.objects.get(
-                        hasta_id=node_key, desde_id=node_key+1)
+                        desde_id=node_key, hasta_id=calculated_path[0][key + 1])
                     edges.append(camino.pk)
                 except:
                     pass
