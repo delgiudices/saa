@@ -42,28 +42,27 @@ ArticleNode = $data.define("ArticleNode", {
 });
 
 $data.Entity.extend("StoreTravel", {
-    id: { type: String },
-    nombre: { type: String },
-    mapa: { type: String }
+    id: { type: String, required: false },
+    nombre: { type: String, required: false },
+    mapa: { type: String, required: false }
 });
 
 $data.Entity.extend("ArticleTravel", {
-    id: { type: String },
-    nombre: { type: String }
+    id: { type: String, required: false },
+    nombre: { type: String, required: false }
 });
 
 $data.Entity.extend("TravelPath", {
-    path: { type: String },
-    articulo: { type: "int" },
+    path: { type: String, required: false },
+    articulo: { type: "int", required: false },
 });
 
 Travel = $data.define("Travel", {
     pk: { type: "int", key: true, computed: true },
     articulos: { type: Array, elementType: ArticleTravel },
-    path: { type: Array, elementType: TravelPath },
-    almacen: { type: StoreTravel }
+    path: { type: Array, elementType: TravelPath, required: false },
+    almacen: { type: StoreTravel, required: false }
 });
-
 
 ToWebApi(Store, "almacenes");
 ToWebApi(Article, "articulos");
@@ -86,11 +85,4 @@ function logStore(store) {
             console.debug(JSON.stringify(entity));
         });
     })
-}
-
-function test() {
-    var stores = [Store, Article, Robot, Node, Edge, ArticleNode, Travel];
-    $.each(stores, function (i, s) {
-        logStore(s);
-    });
 }

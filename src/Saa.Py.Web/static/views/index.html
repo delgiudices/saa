@@ -26,7 +26,7 @@
     <div class="container-fluid">
         <h2>Ejecutar Viaje</h2>
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <form method="post" role="form">
                     <div class="row" data-bind="with: toAddModel ">
                         <div class="form-group col-md-4">
@@ -45,9 +45,13 @@
                     <div class="row clearfix">
                         <div class="col-md-12">
                             <button type="button" class="btn btn-primary" data-bind="click: addArticle">Agregar Artículo</button>
+                            <button type="button" class="btn btn-success" data-bind="visible: actionsVisible, click: executeTravel">Ejecutar Viaje</button>
                         </div>
                     </div>
-                    <div class="row form-inline withTopMargin" data-bind="visible: actionsVisible">
+                </form>
+            </div>
+            <div class="col-md-8">
+                <div class="row form-inline withTopMargin" data-bind="visible: actionsVisible">
                         <div class="col-md-12">
                             <div class="checkbox">
                                 <label>
@@ -79,9 +83,6 @@
                             </div>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-success" data-bind="visible: actionsVisible">Ejecutar Viaje</button>
-                    <button type="button" class="btn btn-default" data-bind="visible: actionsVisible">Guardar Configuración</button>
-                </form>
             </div>
         </div>
     </div>
@@ -101,13 +102,11 @@
     <!-- Dependecies -->
 
     <script src="core/core.js"></script>
-    <!--script src="core/entities.js"></script-->
-    <script src="core/entityData.js"></script>
+    <script src="core/entityData.js"></script>    
     <script type="text/javascript">
         $(function () {
             var vm = new viewModel();
             ko.applyBindings(vm);
-            test();
         });
     </script>
 

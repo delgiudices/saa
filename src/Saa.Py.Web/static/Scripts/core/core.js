@@ -94,4 +94,54 @@ function viewModel() {
         },
         escapeMarkup: function (markup) { return markup; }
     };
+
+    self.executeTravel = function () {
+
+        //{
+        //    "articulos": [
+        //    {
+        //        "pk": 4,
+        //        "cantidad": 2,
+        //        "tipo": "entrada"
+        //    },
+        //    {
+        //        "pk": 5,
+        //        "tipo": "entrada",
+        //        "cantidad": 1
+        //    }
+        //    ],
+        //    "almacen": 1
+        //}
+
+        try {
+            var ars = $.map(self.travels(), function (t) {
+                return {
+                    pk: t.id(),
+                    cantidad: parseInt(t.amount()),
+                    tipo: t.type().value
+                };
+            });
+        } catch (e) {
+            alert("Debe ingresar un número en la cantidad.");
+        }
+
+        $.ajax({
+            type: "POST",
+            //the url where you want to sent the userName and password to
+            url: location.protocol + '//' + location.hostname + (location.port ? ':' + location.port : '') + "/viajes/",
+            //json object to sent to the authentication url
+            data: JSON.stringify({
+                almacen: 1,
+                articulos: ars
+            }),
+            dataType: "json",
+            contentType: "application/json",
+            success: function (t) {
+                console.debug(t);
+                alert("Guardado exitosamente!");
+                window.location.href = "view.html?travelId=" + t.pk;
+            }
+        })
+
+    }
 }

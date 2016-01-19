@@ -1,4 +1,6 @@
-﻿function guid() {
+﻿actualStore = null;
+
+function guid() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
         var r = crypto.getRandomValues(new Uint8Array(1))[0] % 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
@@ -29,11 +31,11 @@ function node(n) {
     };
 }
 
-function edge(n1, n2) {
+function edge(n1, n2, distance) {
     var self = this;
     self.node1 = n1;
     self.node2 = n2;
-    self.distance = null;
+    self.distance = distance;
     self.selected = false;
 
     self.isPointInside = function (x, y) {
@@ -83,6 +85,7 @@ function edge(n1, n2) {
 function edges() {
     var self = this;
     self.edges = ko.observableArray();
+    self.nodes = ko.observableArray();
 
     self.addEdge = function (n1, n2) {
         if (n1.guid === n2.guid) {
@@ -114,13 +117,29 @@ function edges() {
         for (var i = 0; i < edges.length; i++) {
             self.edges.remove(edges[i]);
         }
-
     };
 
     self.byNode = function (node) {
         return Enumerable.From(self.edges()).Where(function (e) {
             return e.node1.guid === node.guid || e.node2.guid === node.guid;
         }).FirstOrDefault();
+    }
+
+    self.load = function (done) {
+        Edge.query("it.desde in ids || it.hasta in ids", {
+            ids: $.map(self.nodes, function (n) {
+                return n.pk;
+            })
+        }).then(function (items) {
+            self.edges.removeAll();
+            items.forEach(function (item) {
+                var i = JSON.parse(JSON.stringify(item));
+                var nodesEnumerable = Enumerable.From(self.nodes());
+                var desde = nodesEnumerable.Single(function (n) { return n.pk === i.desde; });
+                var hasta = nodesEnumerable.Single(function (n) { return n.pk === i.hasta; });
+                self.edges.push(new edge(desde, hasta, i.distancia));
+            });
+        });
     }
 }
 
@@ -203,38 +222,16 @@ function nodes(edges) {
         });
     }
 
-    self.load = function () {
-
-        $.get("/nodos/", function (nodes) {
-            self.nodes.removeAll();
-
-            var ajaxs = function () {
-                var b = [];
-                $.each(nodes, function (i, n) {
-                    var inside = this;
-                    inside.n = self.addNode(n);
-                    b.push($.get("/nodo_articulo/?nodo=" + inside.n.pk));
+    self.load = function (done) {
+        Node.query("it.almacen == " + actualStore.pk)
+            .then(function (items) {
+                self.nodes.removeAll();
+                items.forEach(function (item) {
+                    var i = JSON.parse(JSON.stringify(item));
+                    self.nodes.push(new node(i));
                 });
-                return b;
-            }
-
-            $.when.apply($, ajaxs).then(function (n) {
-                $.each(self.nodes(), function (i, n) {
-                    n.articles.removeAll();
-                    $.each(nA, function (i, n_art) {
-                        $.get("/articulos/" + n_art.articulo, function (art) {
-                            inside.n.articles.push({
-                                pk: n_art.pk,
-                                article: art,
-                                capacity: n_art.capacidad,
-                                actualAmount: n_art.cantidad,
-                                initialOption: [art]
-                            });
-                        })
-                    });
-                });
+                done();
             });
-        });
     }
 }
 
@@ -500,8 +497,11 @@ function storeCanvas(nodes, edges) {
 
     self.init = function (can) {
         self.ctx = can.getContext('2d');
-        self.nodesManager.load();
-        self.redraw();
+        if (actualStore.mapa)
+            self.background.img.src = actualStore.mapa;
+        self.nodesManager.load(function () {
+            self.edgesManager.load(self.redraw);
+        });
         $(self.ctx.canvas).click(function (e) {
             var x = e.pageX - this.offsetLeft - $(this).parent().offset().left;
             var y = e.pageY - this.offsetTop - $(this).parent().offset().top;
@@ -516,6 +516,7 @@ function viewModel() {
 
     self.edges = new edges();
     self.nodes = new nodes(self.edges);
+    self.edges.nodes = self.nodes.nodes;
     self.canvas = new storeCanvas(self.nodes, self.edges);
     self.nodeTypes = ko.observableArray([
         { value: "punto", text: "Punto" },
@@ -524,39 +525,17 @@ function viewModel() {
         { value: "salida", text: "Salida" }
     ]);
 
-    $.get(document.location.origin + "/almacenes/" + 1 + "/", function (store) {
-        if (store.mapa)
-            self.canvas.background.img.src = store.mapa;
-        self.canvas.redraw();
-    });
-
-    self.spec = {
-        ajax: {
-            url: '/articulos/',
-            dataType: 'json',
-            delay: 250,
-            processResults: function (data, page) {
-                return {
-                    results:
-                        $.map(data, function (i) {
-                            return {
-                                id: i.pk,
-                                text: i.nombre,
-                                data: i
-                            };
-                        })
-                };
-            }
-        },
-        allowClear: true,
-        minimumInputLength: 1,
-        placeholder: "Seleccionar un artículo",
-        templateResult: function (item) {
-            return item.text;
-        },
-        templateSelection: function (item) {
-            return item.text;
-        },
-        escapeMarkup: function (markup) { return markup; }
-    };
+    Store.readAll().then(function (data) {
+        data.forEach(function (store) {
+            Travel
+                .readAll()
+                .then(function (d) {
+                    d.forEach(function (travel) {
+                        actualTravel = travel;
+                    });
+                    actualStore = store;
+                    self.canvas.init(document.getElementById("canvas"));
+                });
+        });
+    })
 }

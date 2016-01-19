@@ -544,14 +544,27 @@ function viewModel() {
     Store.readAll().then(function (data) {
         data.forEach(function (store) {
             Travel
-                .readAll()
+                .read(getUrlParameter("travelId"))
                 .then(function (d) {
-                    d.forEach(function (travel) {
-                        actualTravel = travel;
-                    });
+                    actualTravel = d;
                     actualStore = store;
                     self.canvas.init(document.getElementById("canvas"));
                 });
         });
     })
 }
+
+var getUrlParameter = function getUrlParameter(sParam) {
+    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
+    }
+};
