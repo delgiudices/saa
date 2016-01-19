@@ -126,6 +126,12 @@ class Viaje(models.Model):
                     desde_id=node_key, hasta_id=node_key+1)
                 edges.append(camino.pk)
             except:
+                try:
+                    camino = Camino.objects.get(
+                        hasta_id=node_key, desde_id=node_key+1)
+                    edges.append(camino.pk)
+                except:
+                    pass
                 pass
 
         self.path.append({
