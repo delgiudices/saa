@@ -50,21 +50,6 @@ class NodoArticuloViewSet(ModelViewSet):
 
 class ViajeViewSet(ModelViewSet):
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        new_data = serializer.data
-        for item in new_data:
-            if item['path'] is not None:
-                item['path'] = item['path'].replace('u\'', '\'')
-        return Response(new_data)
-
     def create(self, request, *args, **kwargs):
         almacen = Almacen.objects.all()[0]
         viaje = Viaje.objects.create(almacen=almacen)

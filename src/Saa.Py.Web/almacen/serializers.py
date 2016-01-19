@@ -2,6 +2,19 @@ from rest_framework.serializers import ModelSerializer
 from almacen.models import(
     Almacen, Nodo, Articulo, Robot, Camino, Nodo_Articulo, Viaje)
 
+from rest_framework import serializers
+import json
+
+
+class JSONSerializerField(serializers.Field):
+        """ Serializer for JSONField -- required to make field writable"""
+
+        def to_internal_value(self, data):
+            return data
+
+        def to_representation(self, value):
+            return json.dumps(value)
+
 
 class AlmacenSerializer(ModelSerializer):
 
@@ -48,7 +61,9 @@ class Nodo_ArticuloSerializer(ModelSerializer):
 
 class ViajeSerializer(ModelSerializer):
 
+    path = JSONSerializerField()
+
     class Meta:
         fields = ('pk', 'almacen', 'articulos', 'path')
         model = Viaje
-        depth = 1
+        depth = 2
