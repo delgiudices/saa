@@ -35,7 +35,7 @@ class Nodo(models.Model):
     )
 
     almacen = models.ForeignKey(Almacen)
-    nombre  = models.CharField(max_length=80, null=True)
+    nombre = models.CharField(max_length=80, null=True)
     tipo = models.CharField(choices=choices, max_length=80)
     articulos = models.ManyToManyField('Articulo', through='Nodo_Articulo')
     nodos = models.ManyToManyField('Nodo', through='Camino')
@@ -98,7 +98,6 @@ class Viaje(models.Model):
         for articulo in articulos:
             nodos = Nodo.objects.filter(
                 nodo_articulo__articulo_id=articulo['pk'])
-            import pdb; pdb.set_trace()  # XXX BREAKPOINT
             nodo_mas_cercano, peso = nodos[0], self.almacen.camino_mas_cercano(
                 start, nodos[0].pk)[3]
             for nodo in nodos:
