@@ -119,8 +119,18 @@ class Viaje(models.Model):
             self.path = []
         calculated_path = self.almacen.camino_mas_cercano(
             start, data[min_articulo_key]['nodo_mas_cercano'].pk)
+        edges = []
+        for key, node_key in enumerate(calculated_path[0]):
+            try:
+                camino = Camino.objects.get(
+                    desde_id=node_key, hasta_id=node_key+1)
+                edges.append(camino.pk)
+            except:
+                pass
+
         self.path.append({
-            'articulo': min_articulo_key, 'path': calculated_path[0]})
+            'articulo': min_articulo_key, 'path': calculated_path[0],
+            'camino': edges})
         new_start = data[min_articulo_key]['nodo_mas_cercano'].pk
         new_articulos = [
             articulo for articulo in articulos
