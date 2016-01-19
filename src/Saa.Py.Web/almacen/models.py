@@ -129,8 +129,8 @@ class Viaje(models.Model):
                 pass
 
         self.path.append({
-            'articulo': min_articulo_key, 'path': calculated_path[0],
-            'camino': edges})
+            'articulo': min_articulo_key, 'camino': calculated_path[0],
+            'path': edges})
         new_start = data[min_articulo_key]['nodo_mas_cercano'].pk
         new_articulos = [
             articulo for articulo in articulos
