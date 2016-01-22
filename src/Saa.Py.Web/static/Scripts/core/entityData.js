@@ -54,6 +54,7 @@ $data.Entity.extend("ArticleTravel", {
 
 $data.Entity.extend("TravelPath", {
     path: { type: String, required: false },
+    camino: { type: String, required: false },
     articulo: { type: "int", required: false },
 });
 
