@@ -32,8 +32,9 @@ function node(n) {
     };
 }
 
-function edge(n1, n2, distance) {
+function edge(n1, n2, distance, pk) {
     var self = this;
+    self.pk = pk;
     self.node1 = n1;
     self.node2 = n2;
     self.distance = distance;
@@ -139,23 +140,24 @@ function edges() {
                 var nodesEnumerable = Enumerable.From(self.nodes());
                 var desde = nodesEnumerable.Single(function (n) { return n.pk === i.desde; });
                 var hasta = nodesEnumerable.Single(function (n) { return n.pk === i.hasta; });
-                self.edges.push(new edge(desde, hasta, i.distancia));
+                self.edges.push(new edge(desde, hasta, i.distancia, i.pk));
             });
             Travel
-                .query("it.almacen.id == " + actualStore.pk + " && it.pk == " + actualTravel.pk)
+                .query("it.pk == " + actualTravel.pk)
                 .then(function (items) {
                     items.forEach(function (item) {
                         var i = JSON.parse(JSON.stringify(item));
                         var p = Enumerable.From(JSON.parse(i.path[0].path));
                         var edges_ = Enumerable.From(self.edges());
-                        edges_
+                        var auxP = Enumerable.From(p.ToArray()[0].path);
+                        var testEdges = edges_
                             .Where(function (e) {
-                                return (p.Any("$.path[0] == " + e.node1.pk) && p.Any("$.path[0] == " + e.node2.pk))
-                                        || (p.Any("$.path[1] == " + e.node1.pk) && p.Any("$.path[1] == " + e.node2.pk));
-                            })
-                            .ForEach(function (e) {
-                                e.selected = true;
+                                return auxP.Any("$==" + e.pk);
                             });
+
+                        testEdges.ForEach(function (e) {
+                            e.selected = true;
+                        });
                     });
                     done();
                 });
