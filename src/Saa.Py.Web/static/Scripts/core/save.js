@@ -27,6 +27,13 @@ function node(n) {
         return (x >= self.x && x <= self.x + self.img().width && y >= self.y && y <= self.y + self.img().height);
     }
     self.draw = function (ctx) {
+        if (self.name) {
+            ctx.save();
+            ctx.font = "bold 12px Comic Sans MS";
+            ctx.fillStyle = "black";
+            ctx.fillText(self.name, self.x-20, self.y-2);
+            ctx.restore();
+        }
         ctx.drawImage(self.img(), self.x, self.y);
     };
 }
@@ -74,6 +81,11 @@ function edge(n1, n2, distance, pk) {
         ctx.lineTo(self.node2.x, self.node2.y);
         ctx.lineWidth = 2;
         ctx.save();
+        ctx.font = "12px Arial";
+        ctx.fillStyle = "blue";
+        var xMiddle = ((self.node1.x + self.node2.x) / 2) + 2;
+        var yMiddle = ((self.node1.y + self.node2.y) / 2);
+        ctx.fillText(self.distance, xMiddle, yMiddle);
         if (self.selected)
             ctx.strokeStyle = 'green';
         else
@@ -141,6 +153,34 @@ function edges() {
                 var hasta = nodesEnumerable.Single(function (n) { return n.pk === i.hasta; });
                 self.edges.push(new edge(desde, hasta, i.distancia, i.pk));
             });
+            done();
+        });
+    }
+
+    self.save = function (done) {
+        var edges = Enumerable.From(self.edges()).Select(function (d) {
+            return {
+                pk: d.pk,
+                desde: d.node1.pk,
+                hasta: d.node2.pk,
+                distancia: d.distance
+            };
+        });
+
+        var requests = edges.Select(function (edge) {
+            return $.ajax({
+                type: edge.pk ? "PUT" : "POST",
+                url: window.location.origin + "/caminos/" + (edge.pk ? edge.pk + "/" : ""),
+                data: edge,
+                cache: false,
+                success: function (d) {
+                    //console.debug(JSON.stringify(d) + "Done");
+                }
+            });
+        });
+
+        $.when($, requests.ToArray()).then(function (x) {
+            self.load(done);
         });
     }
 }
@@ -200,13 +240,42 @@ function nodes(edges) {
                 data: node,
                 cache: false,
                 success: function (d) {
-                    console.debug(JSON.stringify(d) + "Done");
+                    //console.debug(JSON.stringify(d) + "Done");
                 }
             });
         });
 
         $.when($, requests.ToArray()).then(function (x) {
-            self.load(done);
+            var articles =
+            Enumerable.From(self.nodes())
+                .SelectMany(function (n) {
+                    return n.articles();
+                })
+                .Select(function (na) {
+                    return {
+                        pk: na.pk,
+                        nodo: na.node.pk,
+                        articulo: na.article().pk,
+                        cantidad: na.actualAmount(),
+                        capacidad: na.capacity()
+                    };
+                });
+
+            var rqs = articles.Select(function (art) {
+                return $.ajax({
+                    type: art.pk ? "PUT" : "POST",
+                    url: window.location.origin + "/nodo_articulo/" + (art.pk ? art.pk + "/" : ""),
+                    data: art,
+                    cache: false,
+                    success: function (d) {
+                        //console.debug(JSON.stringify(d) + "Done");
+                    }
+                });
+            });
+
+            $.when($, rqs.ToArray()).then(function (x) {
+                self.load(done);
+            });
         });
     }
 
@@ -216,19 +285,28 @@ function nodes(edges) {
                 self.nodes.removeAll();
                 items.forEach(function (item) {
                     var i = JSON.parse(JSON.stringify(item));
-                    self.nodes.push(new node(i));
-                    //console.debug("Load: " + JSON.stringify(i));
+                    var n = new node(i);
+                    $.get(document.location.origin + "/nodo_articulo/?nodo=" + n.pk, function (nArts) {
+                        nArts.forEach(function (nArt) {
+                            $.get(document.location.origin + "/articulos/" + nArt.articulo, function (art) {
+                                n.articles.push(new toAddArticle(n, nArt, art));
+                            });
+                        });
+                    });
+                    self.nodes.push(n);
                 });
                 done();
             });
     }
 }
 
-function toAddArticle() {
+function toAddArticle(node, nArts, art) {
     var self = this;
-    self.article = ko.observable();
-    self.capacity = ko.observable();
-    self.actualAmount = ko.observable();
+    self.pk = nArts ? nArts.pk : null;
+    self.article = nArts ? ko.observable(art) : ko.observable();
+    self.capacity = nArts ? ko.observable(nArts.capacidad) : ko.observable();
+    self.actualAmount = nArts ? ko.observable(nArts.cantidad) : ko.observable();
+    self.node = node;
 }
 
 function toEditNode(node) {
@@ -241,7 +319,7 @@ function toEditNode(node) {
     self.node = node;
 
     self.addArticle = function () {
-        self.articles.push(new toAddArticle());
+        self.articles.push(new toAddArticle(self.node));
     };
 
     self.persist = function () {
@@ -384,25 +462,28 @@ function storeCanvas(nodes, edges) {
 
     self.selectEdge = function (e) {
         self.unselectEdge();
-        self.selectEdge = e;
+        e.selected = true;
         self.toEditEdge(new toEditEdge(e));
         self.redraw();
     }
 
     self.unselectEdge = function () {
         if (!self.toEditEdge()) return;
+        self.toEditEdge().edge.selected = false;
         self.toEditEdge(null);
         self.redraw();
     };
 
     self.selectNode = function (n) {
         self.unselectNode();
+        n.selected = true;
         self.toEditNode(new toEditNode(n));
         self.redraw();
     }
 
     self.unselectNode = function () {
         if (!self.toEditNode()) return;
+        self.toEditNode().node.selected = false;
         self.toEditNode(null);
         self.redraw();
     }
@@ -475,14 +556,18 @@ function storeCanvas(nodes, edges) {
                 processData: false
             });
         }
-        self.nodesManager.save(self.redraw);
+        self.nodesManager.save(function () {
+            self.edgesManager.save(self.redraw);
+        });
     }
 
     self.init = function (can) {
         self.ctx = can.getContext('2d');
         if (actualStore.mapa)
             self.background.img.src = actualStore.mapa;
-        self.nodesManager.load(self.redraw);
+        self.nodesManager.load(function () {
+            self.edgesManager.load(self.redraw);
+        });
         $(self.ctx.canvas).click(function (e) {
             var x = e.pageX - this.offsetLeft - $(this).parent().offset().left;
             var y = e.pageY - this.offsetTop - $(this).parent().offset().top;
@@ -505,7 +590,14 @@ function viewModel() {
         { value: "entrada", text: "Entrada" },
         { value: "salida", text: "Salida" }
     ]);
-
+    self.articles = ko.observableArray();
+    Article.readAll().then(function (arts) {
+        self.articles.removeAll();
+        $(arts).each(function (i, e) {
+            self.articles.push(e);
+        })
+    });
+    self.articulos =
     Store.readAll().then(function (data) {
         data.forEach(function (store) {
             actualStore = store;
