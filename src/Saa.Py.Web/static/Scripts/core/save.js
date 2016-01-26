@@ -31,8 +31,9 @@ function node(n) {
     };
 }
 
-function edge(n1, n2, distance) {
+function edge(n1, n2, distance, pk) {
     var self = this;
+    self.pk = pk;
     self.node1 = n1;
     self.node2 = n2;
     self.distance = distance;
@@ -117,6 +118,7 @@ function edges() {
         for (var i = 0; i < edges.length; i++) {
             self.edges.remove(edges[i]);
         }
+
     };
 
     self.byNode = function (node) {
@@ -137,7 +139,7 @@ function edges() {
                 var nodesEnumerable = Enumerable.From(self.nodes());
                 var desde = nodesEnumerable.Single(function (n) { return n.pk === i.desde; });
                 var hasta = nodesEnumerable.Single(function (n) { return n.pk === i.hasta; });
-                self.edges.push(new edge(desde, hasta, i.distancia));
+                self.edges.push(new edge(desde, hasta, i.distancia, i.pk));
             });
         });
     }
@@ -154,20 +156,32 @@ function nodes(edges) {
         return n_;
     }
 
-    self.remove = function (n) {
-        Enumerable.From(self.nodes()).Where(function (n2) {
-            return Enumerable.From(n2.nodes()).Any(function (n3) {
-                return n3.guid === n.guid;
+    self.remove = function (n, done) {
+        if (n.pk) {
+            var request = $.ajax({
+                type: "DELETE",
+                url: window.location.origin + "/nodos/" + n.pk + "/",
             });
-        }).ForEach(function (n2) {
-            n2.nodes.remove(n);
-        });
-        self.nodes.remove(n);
-        self.edges.removeByNode(n);
-        delete n;
+
+            $.when($, request).then(function (x) {
+                self.load(done);
+            });
+        }
+        else {
+            Enumerable.From(self.nodes()).Where(function (n2) {
+                return Enumerable.From(n2.nodes()).Any(function (n3) {
+                    return n3.guid === n.guid;
+                });
+            }).ForEach(function (n2) {
+                n2.nodes.remove(n);
+            });
+            self.nodes.remove(n);
+            self.edges.removeByNode(n);
+            delete n;
+        }
     }
 
-    self.save = function () {
+    self.save = function (done) {
         var nodos = Enumerable.From(self.nodes()).Select(function (n) {
             return {
                 almacen: n.store,
@@ -177,48 +191,22 @@ function nodes(edges) {
                 y: n.y,
                 nombre: n.name
             };
-        }).ToArray();
-
-        var ajaxs = function () {
-            var a = [];
-            $.each(nodos, function (idx, n) {
-                a.push($.ajax({
-                    type: n.pk ? 'put' : 'post',
-                    url: document.location.origin + "/nodos/" + (n.pk ? n.pk + "/" : ''),
-                    data: JSON.stringify(n),
-                    contentType: "application/json",
-                    async: true
-                }));
-            });
-            return a;
-        }
-
-        $.when($, ajaxs()).then(function () {
-            self.load();
         });
 
-        var nodeArt = Enumerable.From(self.nodes()).SelectMany(function (n) {
-            return Enumerable.From(n.articles()).Select(function (nA) {
-                return {
-                    nodo: n.pk,
-                    articulo: nA.article().data.pk,
-                    cantidad: nA.actualAmount(),
-                    capacidad: nA.capacity()
-                };
-            });
-        }).ToArray();
-
-        $.each(nodeArt, function (i, nA) {
-            $.ajax({
-                type: nA.pk ? 'put' : 'post',
-                url: document.location.origin + "/nodo_articulo/" + (nA.pk ? nA.pk + "/" : ''),
-                data: JSON.stringify(nA),
-                contentType: "application/json",
-                async: true,
-                success: function (data) {
-                    self.load();
+        var requests = nodos.Select(function (node) {
+            return $.ajax({
+                type: node.pk ? "PUT" : "POST",
+                url: window.location.origin + "/nodos/" + (node.pk ? node.pk + "/" : ""),
+                data: node,
+                cache: false,
+                success: function (d) {
+                    console.debug(JSON.stringify(d) + "Done");
                 }
             });
+        });
+
+        $.when($, requests.ToArray()).then(function (x) {
+            self.load(done);
         });
     }
 
@@ -229,6 +217,7 @@ function nodes(edges) {
                 items.forEach(function (item) {
                     var i = JSON.parse(JSON.stringify(item));
                     self.nodes.push(new node(i));
+                    //console.debug("Load: " + JSON.stringify(i));
                 });
                 done();
             });
@@ -383,7 +372,7 @@ function storeCanvas(nodes, edges) {
             var node = self.getSelectedNode(e);
             var edge = null;
             if (node) {
-                self.nodesManager.remove(node);
+                self.nodesManager.remove(node, self.redraw);
             }
             else if (edge = self.getSelectedEdge(e)) {
                 self.edgesManager.remove(edge);
@@ -395,28 +384,25 @@ function storeCanvas(nodes, edges) {
 
     self.selectEdge = function (e) {
         self.unselectEdge();
-        e.selected = true;
+        self.selectEdge = e;
         self.toEditEdge(new toEditEdge(e));
         self.redraw();
     }
 
     self.unselectEdge = function () {
         if (!self.toEditEdge()) return;
-        self.toEditEdge().edge.selected = false;
         self.toEditEdge(null);
         self.redraw();
     };
 
     self.selectNode = function (n) {
         self.unselectNode();
-        n.selected = true;
         self.toEditNode(new toEditNode(n));
         self.redraw();
     }
 
     self.unselectNode = function () {
         if (!self.toEditNode()) return;
-        self.toEditNode().node.selected = false;
         self.toEditNode(null);
         self.redraw();
     }
@@ -489,19 +475,14 @@ function storeCanvas(nodes, edges) {
                 processData: false
             });
         }
-
-
-        self.nodesManager.save();
-        self.redraw();
+        self.nodesManager.save(self.redraw);
     }
 
     self.init = function (can) {
         self.ctx = can.getContext('2d');
         if (actualStore.mapa)
             self.background.img.src = actualStore.mapa;
-        self.nodesManager.load(function () {
-            self.edgesManager.load(self.redraw);
-        });
+        self.nodesManager.load(self.redraw);
         $(self.ctx.canvas).click(function (e) {
             var x = e.pageX - this.offsetLeft - $(this).parent().offset().left;
             var y = e.pageY - this.offsetTop - $(this).parent().offset().top;
@@ -527,15 +508,23 @@ function viewModel() {
 
     Store.readAll().then(function (data) {
         data.forEach(function (store) {
-            Travel
-                .readAll()
-                .then(function (d) {
-                    d.forEach(function (travel) {
-                        actualTravel = travel;
-                    });
-                    actualStore = store;
-                    self.canvas.init(document.getElementById("canvas"));
-                });
+            actualStore = store;
+            self.canvas.init(document.getElementById("canvas"));
         });
     })
 }
+
+var getUrlParameter = function getUrlParameter(sParam) {
+    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
+    }
+};
