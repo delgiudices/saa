@@ -16,6 +16,9 @@ class Almacen(models.Model):
         for camino in Camino.objects.all():
             graph.add_edge(
                 camino.desde.pk, camino.hasta.pk, {'cost': camino.distancia})
+            graph.add_edge(
+                camino.hasta.pk, camino.desde.pk, {'cost': camino.distancia})
+
         return graph
 
     def camino_mas_cercano(self, desde, hasta):
