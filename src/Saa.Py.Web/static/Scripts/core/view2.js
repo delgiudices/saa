@@ -82,10 +82,10 @@ function edge(n1, n2, distance, pk) {
         ctx.lineTo(self.node2.x, self.node2.y);
         ctx.lineWidth = 2;
         ctx.save();
-        ctx.font = "12px Arial";
-        ctx.fillStyle = "blue";
+        ctx.font = "bold 12px Arial";
+        ctx.fillStyle = "red";
         var xMiddle = ((self.node1.x + self.node2.x) / 2) + 2;
-        var yMiddle = ((self.node1.y + self.node2.y) / 2);
+        var yMiddle = ((self.node1.y + self.node2.y) / 2) -3;
         ctx.fillText(self.distance, xMiddle, yMiddle);
         if (self.selected)
             ctx.strokeStyle = 'green';

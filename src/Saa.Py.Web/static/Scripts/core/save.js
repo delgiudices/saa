@@ -31,7 +31,7 @@ function node(n) {
             ctx.save();
             ctx.font = "bold 12px Comic Sans MS";
             ctx.fillStyle = "black";
-            ctx.fillText(self.name, self.x-20, self.y-2);
+            ctx.fillText(self.name, self.x - 20, self.y - 2);
             ctx.restore();
         }
         ctx.drawImage(self.img(), self.x, self.y);
@@ -81,11 +81,14 @@ function edge(n1, n2, distance, pk) {
         ctx.lineTo(self.node2.x, self.node2.y);
         ctx.lineWidth = 2;
         ctx.save();
-        ctx.font = "12px Arial";
-        ctx.fillStyle = "blue";
-        var xMiddle = ((self.node1.x + self.node2.x) / 2) + 2;
-        var yMiddle = ((self.node1.y + self.node2.y) / 2);
-        ctx.fillText(self.distance, xMiddle, yMiddle);
+        if (self.distance) {
+            ctx.font = "bold 12px Arial";
+            ctx.fillStyle = "red";
+            var xMiddle = ((self.node1.x + self.node2.x) / 2) + 2;
+            var yMiddle = ((self.node1.y + self.node2.y) / 2) - 3;
+            ctx.fillText(self.distance, xMiddle, yMiddle);
+        }
+
         if (self.selected)
             ctx.strokeStyle = 'green';
         else
