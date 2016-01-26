@@ -102,9 +102,10 @@ class Viaje(models.Model):
                 start, nodos[0].pk)[3]
             for nodo in nodos:
                 now_peso = self.almacen.camino_mas_cercano(start, nodo.pk)
-                if now_peso < peso:
-                    nodo_mas_cercano = nodo,
-                    peso = now_peso
+                now_peso_actual = now_peso[3]
+                if now_peso_actual < peso:
+                    nodo_mas_cercano = nodo
+                    peso = now_peso_actual
             data[articulo['pk']] = {
                 'peso': peso, 'nodo_mas_cercano': nodo_mas_cercano}
 
