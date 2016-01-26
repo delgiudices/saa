@@ -58,7 +58,7 @@
                                 <div class="row">
                                     <div class="form-group  col-md-4">
                                         <label for="articulo" class="control-label">Artículo:</label>
-                                        <select type="text" class="form-control" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="articulo" data-bind="select2Data: article, select2: $root.spec, optionsText: 'nombre'"></select>
+                                        <select type="text" class="form-control" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="articulo" data-bind="value: article, options: $root.articles, optionsText: 'nombre', optionValue: 'pk'"></select>
                                     </div>
                                     <div class="form-group col-md-4">
                                         <label for="capacidad" class="control-label">Capacidad:</label>
@@ -76,6 +76,7 @@
 
                             <div class="col-md-12">
                                 <p data-bind="text: 'Posición: ' + x() + ', ' + y()"></p>
+                                 <p data-bind="text: 'Pk: '+node.pk"></p>
                             </div>
                             <div class="col-md-12">
                                 <button class="btn btn-primary" data-bind="click: $root.canvas.saveToEdit">Guardar</button>
@@ -92,6 +93,9 @@
                             <div class="form-group col-md-12">
                                 <label class="control-label" for="distancia">Distancia:</label>
                                 <input type="number" class="form-control" id="distancia" placeholder="Distancia" data-bind="value: distance" min="1" />
+                            </div>
+                            <div class="form-group col-md-12">
+                                <p data-bind="text: 'Pk: ' + edge.pk"></p>
                             </div>
                             <div class="col-md-12">
                                 <button class="btn btn-primary" data-bind="click: $root.canvas.saveToEditEdge">Guardar</button>
@@ -121,7 +125,7 @@
     <script src="jaydatamodules/knockout.min.js"></script>
     <!-- Dependecies -->
     <script src="core/entityData.js"></script>
-    <script src="core/view.js"></script>
+    <script src="core/view2.js"></script>
 
     <script type="text/javascript">
         $(function () {
