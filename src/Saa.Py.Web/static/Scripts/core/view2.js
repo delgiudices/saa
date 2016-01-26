@@ -85,7 +85,7 @@ function edge(n1, n2, distance, pk) {
         ctx.font = "bold 12px Arial";
         ctx.fillStyle = "red";
         var xMiddle = ((self.node1.x + self.node2.x) / 2) + 2;
-        var yMiddle = ((self.node1.y + self.node2.y) / 2) -3;
+        var yMiddle = ((self.node1.y + self.node2.y) / 2) - 3;
         ctx.fillText(self.distance, xMiddle, yMiddle);
         if (self.selected)
             ctx.strokeStyle = 'green';
@@ -154,25 +154,22 @@ function edges() {
                 var hasta = nodesEnumerable.Single(function (n) { return n.pk === i.hasta; });
                 self.edges.push(new edge(desde, hasta, i.distancia, i.pk));
             });
-        });
-        Travel
-            .query("it.pk == " + actualTravel.pk)
-            .then(function (items) {
-                items.forEach(function (item) {
-                    var i = JSON.parse(JSON.stringify(item));
-                    var p = Enumerable.From(JSON.parse(i.path[0].path));
-                    var edges_ = Enumerable.From(self.edges());
-                    var auxP = Enumerable.From(p.ToArray()[0].path);
-                    var testEdges = edges_
-                        .Where(function (e) {
-                            return auxP.Any("$==" + e.pk);
+
+            $.get(window.location.origin + "/viajes/" + actualTravel.pk + "/", function (item) {
+                var i = JSON.parse(item.path);
+                var edges_ = Enumerable.From(self.edges());
+                i.forEach(function (i2) {
+                    i2.path.forEach(function (c) {
+                        var ed_ = edges_.Single(function (e) {
+                            return e.pk === c;
                         });
-                    testEdges.ForEach(function (e) {
-                        e.selected = true;
+                        ed_.selected = true;
                     });
                 });
                 done();
-            });
+            })
+
+        });
     }
 
     self.save = function (done) {
