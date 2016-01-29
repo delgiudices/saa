@@ -8,6 +8,16 @@ function guid() {
     });
 }
 
+function travel(art, nodes) {
+    var self = this;
+    self.edges = ko.observableArray();
+    self.art = ko.observable();
+    self.nodes = nodes;
+    $.get(document.location.origin + "\\articulos\\" + art + "\\", function (article) {
+        self.art(article.nombre);
+    });
+}
+
 function node(n) {
     var self = this;
     self.pk = n.pk;
@@ -46,6 +56,7 @@ function edge(n1, n2, distance, pk) {
     self.node2 = n2;
     self.distance = distance;
     self.selected = false;
+    self.highLigth = false;
 
     self.isPointInside = function (x, y) {
         //http://stackoverflow.com/a/24044684
@@ -87,8 +98,11 @@ function edge(n1, n2, distance, pk) {
         var xMiddle = ((self.node1.x + self.node2.x) / 2) + 2;
         var yMiddle = ((self.node1.y + self.node2.y) / 2) - 3;
         ctx.fillText(self.distance, xMiddle, yMiddle);
-        if (self.selected)
-            ctx.strokeStyle = 'green';
+        if (self.selected || self.highLigth) {
+            if (self.selected) { ctx.strokeStyle = 'green'; }
+            if (self.highLigth) { ctx.strokeStyle = 'red'; }
+        }
+
         else
             ctx.restore();
         ctx.stroke();
@@ -100,6 +114,7 @@ function edges() {
     var self = this;
     self.edges = ko.observableArray();
     self.nodes = ko.observableArray();
+    self.travels = ko.observableArray();
 
     self.addEdge = function (n1, n2) {
         if (n1.guid === n2.guid) {
@@ -158,13 +173,17 @@ function edges() {
             $.get(window.location.origin + "/viajes/" + actualTravel.pk + "/", function (item) {
                 var i = JSON.parse(item.path);
                 var edges_ = Enumerable.From(self.edges());
+
                 i.forEach(function (i2) {
+                    var tra_ = new travel(i2.articulo, i2.camino);
                     i2.path.forEach(function (c) {
                         var ed_ = edges_.Single(function (e) {
                             return e.pk === c;
                         });
                         ed_.selected = true;
+                        tra_.edges.push(ed_);
                     });
+                    self.travels.push(tra_);
                 });
                 done();
             })
@@ -472,6 +491,20 @@ function storeCanvas(nodes, edges) {
             }
             self.redraw();
         }
+        self.redraw();
+    }
+
+    self.showPath = function (model, evt) {
+        model.edges().forEach(function (e) {
+            e.highLigth = true;
+        });
+        self.redraw();
+    }
+
+    self.hidePath = function (model, evt) {
+        model.edges().forEach(function (e) {
+            e.highLigth = false;
+        });
         self.redraw();
     }
 

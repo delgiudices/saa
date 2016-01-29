@@ -76,7 +76,7 @@
 
                             <div class="col-md-12">
                                 <p data-bind="text: 'Posición: ' + x() + ', ' + y()"></p>
-                                 <p data-bind="text: 'Pk: '+node.pk"></p>
+                                <p data-bind="text: 'Pk: '+node.pk"></p>
                             </div>
                             <div class="col-md-12">
                                 <button class="btn btn-primary" data-bind="click: $root.canvas.saveToEdit">Guardar</button>
@@ -85,7 +85,6 @@
                         </div>
                     </div>
                 </form>
-
                 <form role="form" class="form-horizontal" data-bind="with: canvas.toEditEdge">
                     <div class="panel panel-default">
                         <div class="panel-body">
@@ -104,7 +103,16 @@
                         </div>
                     </div>
                 </form>
+                <div data-bind="foreach: edges.travels">
+                    <div class="panel panel-default" data-bind="event: { mouseover: $root.canvas.showPath,  mouseout: $root.canvas.hidePath}">
+                        <div class="panel-body">
+                            <h5 data-bind="text: art"></h5>
+                        </div>
+                    </div>
+                </div>
+                
             </div>
+
         </div>
     </div>
 
