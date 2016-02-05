@@ -105,7 +105,7 @@ class Viaje(models.Model):
                 nodo_mas_cercano, peso = nodos[0], self.almacen.camino_mas_cercano(
                     start, nodos[0].pk)[3]
             except:
-                import pdb; pdb.set_trace()  # XXX BREAKPOINT
+                pass
 
             for nodo in nodos:
                 now_peso = self.almacen.camino_mas_cercano(start, nodo.pk)
