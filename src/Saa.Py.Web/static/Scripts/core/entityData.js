@@ -11,7 +11,7 @@ Article = $data.define("Article", {
 
 Node = $data.define("Node", {
     pk: { type: "int", key: true, computed: true },
-    nombre: { type: String, required: true, maxLength: 200 },
+    nombre: { type: String, maxLength: 200 },
     tipo: { type: String, required: true, maxLength: 200 },
     x: { type: "int", required: true },
     y: { type: "int", required: true },
@@ -54,6 +54,7 @@ $data.Entity.extend("ArticleTravel", {
 
 $data.Entity.extend("TravelPath", {
     path: { type: String, required: false },
+    camino: { type: String, required: false },
     articulo: { type: "int", required: false },
 });
 
@@ -75,7 +76,7 @@ ToWebApi(Travel, "viajes");
 function ToWebApi(store, dataSource) {
     store.setStore('default', {
         provider: 'webApi',
-        dataSource: '/' + dataSource
+        dataSource: '/' + dataSource + '/'
     });
 }
 

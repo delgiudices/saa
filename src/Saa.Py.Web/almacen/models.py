@@ -16,6 +16,9 @@ class Almacen(models.Model):
         for camino in Camino.objects.all():
             graph.add_edge(
                 camino.desde.pk, camino.hasta.pk, {'cost': camino.distancia})
+            graph.add_edge(
+                camino.hasta.pk, camino.desde.pk, {'cost': camino.distancia})
+
         return graph
 
     def camino_mas_cercano(self, desde, hasta):
@@ -93,18 +96,47 @@ class Viaje(models.Model):
     def calculate_path(self, start, articulos):
         data = {}
         if len(articulos) == 0:
+            nodo_salida = Nodo.objects.get(tipo="salida")
+            calculated_path = self.almacen.camino_mas_cercano(
+                start,
+                nodo_salida.pk,
+            )
+            edges = []
+            for key, node_key in enumerate(calculated_path[0]):
+                try:
+                    camino = Camino.objects.get(
+                        desde_id=calculated_path[0][key],
+                        hasta_id=calculated_path[0][key + 1])
+                    edges.append(camino.pk)
+                except:
+                    try:
+                        camino = Camino.objects.get(
+                            desde_id=calculated_path[0][key + 1],
+                            hasta_id=calculated_path[0][key])
+                        edges.append(camino.pk)
+                    except:
+                        pass
+
+            self.path.append({
+                'articulo': None, 'camino': calculated_path[0],
+                'path': edges})
             self.save()
             return
         for articulo in articulos:
             nodos = Nodo.objects.filter(
                 nodo_articulo__articulo_id=articulo['pk'])
-            nodo_mas_cercano, peso = nodos[0], self.almacen.camino_mas_cercano(
-                start, nodos[0].pk)[3]
+            try:
+                nodo_mas_cercano, peso = nodos[0], self.almacen.camino_mas_cercano(
+                    start, nodos[0].pk)[3]
+            except:
+                pass
+
             for nodo in nodos:
                 now_peso = self.almacen.camino_mas_cercano(start, nodo.pk)
-                if now_peso < peso:
-                    nodo_mas_cercano = nodo,
-                    peso = now_peso
+                now_peso_actual = now_peso[3]
+                if now_peso_actual < peso:
+                    nodo_mas_cercano = nodo
+                    peso = now_peso_actual
             data[articulo['pk']] = {
                 'peso': peso, 'nodo_mas_cercano': nodo_mas_cercano}
 
@@ -119,8 +151,26 @@ class Viaje(models.Model):
             self.path = []
         calculated_path = self.almacen.camino_mas_cercano(
             start, data[min_articulo_key]['nodo_mas_cercano'].pk)
+        edges = []
+        for key, node_key in enumerate(calculated_path[0]):
+            try:
+                camino = Camino.objects.get(
+                    desde_id=calculated_path[0][key],
+                    hasta_id=calculated_path[0][key + 1])
+                edges.append(camino.pk)
+            except:
+                try:
+                    camino = Camino.objects.get(
+                        desde_id=calculated_path[0][key + 1],
+                        hasta_id=calculated_path[0][key])
+                    edges.append(camino.pk)
+                except:
+                    pass
+                pass
+
         self.path.append({
-            'articulo': min_articulo_key, 'path': calculated_path[0]})
+            'articulo': min_articulo_key, 'camino': calculated_path[0],
+            'path': edges})
         new_start = data[min_articulo_key]['nodo_mas_cercano'].pk
         new_articulos = [
             articulo for articulo in articulos

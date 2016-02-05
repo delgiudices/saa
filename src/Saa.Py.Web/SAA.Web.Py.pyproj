@@ -60,6 +60,7 @@
     <Content Include="static\Scripts\core\entityData.js" />
     <Content Include="static\Scripts\core\view.js" />
     <Content Include="static\Scripts\core\save.js" />
+    <Content Include="static\Scripts\core\view2.js" />
     <Content Include="static\views\view.html" />
     <Content Include="static\views\save.html" />
     <None Include="bundleconfig.json" />

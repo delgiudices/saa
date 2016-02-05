@@ -27,12 +27,20 @@ function node(n) {
         return (x >= self.x && x <= self.x + self.img().width && y >= self.y && y <= self.y + self.img().height);
     }
     self.draw = function (ctx) {
+        if (self.name) {
+            ctx.save();
+            ctx.font = "bold 12px Comic Sans MS";
+            ctx.fillStyle = "black";
+            ctx.fillText(self.name, self.x - 20, self.y - 2);
+            ctx.restore();
+        }
         ctx.drawImage(self.img(), self.x, self.y);
     };
 }
 
-function edge(n1, n2, distance) {
+function edge(n1, n2, distance, pk) {
     var self = this;
+    self.pk = pk;
     self.node1 = n1;
     self.node2 = n2;
     self.distance = distance;
@@ -73,6 +81,14 @@ function edge(n1, n2, distance) {
         ctx.lineTo(self.node2.x, self.node2.y);
         ctx.lineWidth = 2;
         ctx.save();
+        if (self.distance) {
+            ctx.font = "bold 12px Arial";
+            ctx.fillStyle = "red";
+            var xMiddle = ((self.node1.x + self.node2.x) / 2) + 2;
+            var yMiddle = ((self.node1.y + self.node2.y) / 2) - 3;
+            ctx.fillText(self.distance, xMiddle, yMiddle);
+        }
+
         if (self.selected)
             ctx.strokeStyle = 'green';
         else
@@ -117,6 +133,7 @@ function edges() {
         for (var i = 0; i < edges.length; i++) {
             self.edges.remove(edges[i]);
         }
+
     };
 
     self.byNode = function (node) {
@@ -137,8 +154,36 @@ function edges() {
                 var nodesEnumerable = Enumerable.From(self.nodes());
                 var desde = nodesEnumerable.Single(function (n) { return n.pk === i.desde; });
                 var hasta = nodesEnumerable.Single(function (n) { return n.pk === i.hasta; });
-                self.edges.push(new edge(desde, hasta, i.distancia));
+                self.edges.push(new edge(desde, hasta, i.distancia, i.pk));
             });
+            done();
+        });
+    }
+
+    self.save = function (done) {
+        var edges = Enumerable.From(self.edges()).Select(function (d) {
+            return {
+                pk: d.pk,
+                desde: d.node1.pk,
+                hasta: d.node2.pk,
+                distancia: d.distance
+            };
+        });
+
+        var requests = edges.Select(function (edge) {
+            return $.ajax({
+                type: edge.pk ? "PUT" : "POST",
+                url: window.location.origin + "/caminos/" + (edge.pk ? edge.pk + "/" : ""),
+                data: edge,
+                cache: false,
+                success: function (d) {
+                    //console.debug(JSON.stringify(d) + "Done");
+                }
+            });
+        });
+
+        $.when($, requests.ToArray()).then(function (x) {
+            self.load(done);
         });
     }
 }
@@ -154,70 +199,88 @@ function nodes(edges) {
         return n_;
     }
 
-    self.remove = function (n) {
-        Enumerable.From(self.nodes()).Where(function (n2) {
-            return Enumerable.From(n2.nodes()).Any(function (n3) {
-                return n3.guid === n.guid;
+    self.remove = function (n, done) {
+        if (n.pk) {
+            var request = $.ajax({
+                type: "DELETE",
+                url: window.location.origin + "/nodos/" + n.pk + "/",
             });
-        }).ForEach(function (n2) {
-            n2.nodes.remove(n);
-        });
-        self.nodes.remove(n);
-        self.edges.removeByNode(n);
-        delete n;
+
+            $.when($, request).then(function (x) {
+                self.load(done);
+            });
+        }
+        else {
+            Enumerable.From(self.nodes()).Where(function (n2) {
+                return Enumerable.From(n2.nodes()).Any(function (n3) {
+                    return n3.guid === n.guid;
+                });
+            }).ForEach(function (n2) {
+                n2.nodes.remove(n);
+            });
+            self.nodes.remove(n);
+            self.edges.removeByNode(n);
+            delete n;
+        }
     }
 
-    self.save = function () {
+    self.save = function (done) {
         var nodos = Enumerable.From(self.nodes()).Select(function (n) {
             return {
                 almacen: n.store,
+                articulos: Enumerable.From(n.articles()).Select(function (na) {
+                    return na.article().pk;
+                }).ToArray(),
                 pk: n.pk,
                 tipo: n.type,
                 x: n.x,
                 y: n.y,
                 nombre: n.name
             };
-        }).ToArray();
-
-        var ajaxs = function () {
-            var a = [];
-            $.each(nodos, function (idx, n) {
-                a.push($.ajax({
-                    type: n.pk ? 'put' : 'post',
-                    url: document.location.origin + "/nodos/" + (n.pk ? n.pk + "/" : ''),
-                    data: JSON.stringify(n),
-                    contentType: "application/json",
-                    async: true
-                }));
-            });
-            return a;
-        }
-
-        $.when($, ajaxs()).then(function () {
-            self.load();
         });
 
-        var nodeArt = Enumerable.From(self.nodes()).SelectMany(function (n) {
-            return Enumerable.From(n.articles()).Select(function (nA) {
-                return {
-                    nodo: n.pk,
-                    articulo: nA.article().data.pk,
-                    cantidad: nA.actualAmount(),
-                    capacidad: nA.capacity()
-                };
-            });
-        }).ToArray();
-
-        $.each(nodeArt, function (i, nA) {
-            $.ajax({
-                type: nA.pk ? 'put' : 'post',
-                url: document.location.origin + "/nodo_articulo/" + (nA.pk ? nA.pk + "/" : ''),
-                data: JSON.stringify(nA),
-                contentType: "application/json",
-                async: true,
-                success: function (data) {
-                    self.load();
+        var requests = nodos.Select(function (node) {
+            return $.ajax({
+                type: node.pk ? "PUT" : "POST",
+                url: window.location.origin + "/nodos/" + (node.pk ? node.pk + "/" : ""),
+                data: node,
+                cache: false,
+                success: function (d) {
+                    //console.debug(JSON.stringify(d) + "Done");
                 }
+            });
+        });
+
+        $.when($, requests.ToArray()).then(function (x) {
+            var articles =
+            Enumerable.From(self.nodes())
+                .SelectMany(function (n) {
+                    return n.articles();
+                })
+                .Select(function (na) {
+                    return {
+                        pk: na.pk,
+                        nodo: na.node.pk,
+                        articulo: na.article().pk,
+                        cantidad: na.actualAmount(),
+                        capacidad: na.capacity()
+                    };
+                });
+
+            var rqs = articles.Select(function (art) {
+                return $.ajax({
+                    type: art.pk ? "PUT" : "POST",
+                    url: window.location.origin + "/nodo_articulo/" + (art.pk ? art.pk + "/" : ""),
+                    data: art,
+                    cache: false,
+                    success: function (d) {
+                        //console.debug(JSON.stringify(d) + "Done");
+                    }
+                });
+            });
+
+            $.when($, rqs.ToArray()).then(function (x) {
+                self.load(done);
             });
         });
     }
@@ -228,18 +291,28 @@ function nodes(edges) {
                 self.nodes.removeAll();
                 items.forEach(function (item) {
                     var i = JSON.parse(JSON.stringify(item));
-                    self.nodes.push(new node(i));
+                    var n = new node(i);
+                    $.get(document.location.origin + "/nodo_articulo/?nodo=" + n.pk, function (nArts) {
+                        nArts.forEach(function (nArt) {
+                            $.get(document.location.origin + "/articulos/" + nArt.articulo, function (art) {
+                                n.articles.push(new toAddArticle(n, nArt, art));
+                            });
+                        });
+                    });
+                    self.nodes.push(n);
                 });
                 done();
             });
     }
 }
 
-function toAddArticle() {
+function toAddArticle(node, nArts, art) {
     var self = this;
-    self.article = ko.observable();
-    self.capacity = ko.observable();
-    self.actualAmount = ko.observable();
+    self.pk = nArts ? nArts.pk : null;
+    self.article = nArts ? ko.observable(art) : ko.observable();
+    self.capacity = nArts ? ko.observable(nArts.capacidad) : ko.observable();
+    self.actualAmount = nArts ? ko.observable(nArts.cantidad) : ko.observable();
+    self.node = node;
 }
 
 function toEditNode(node) {
@@ -252,7 +325,7 @@ function toEditNode(node) {
     self.node = node;
 
     self.addArticle = function () {
-        self.articles.push(new toAddArticle());
+        self.articles.push(new toAddArticle(self.node));
     };
 
     self.persist = function () {
@@ -383,7 +456,7 @@ function storeCanvas(nodes, edges) {
             var node = self.getSelectedNode(e);
             var edge = null;
             if (node) {
-                self.nodesManager.remove(node);
+                self.nodesManager.remove(node, self.redraw);
             }
             else if (edge = self.getSelectedEdge(e)) {
                 self.edgesManager.remove(edge);
@@ -489,10 +562,9 @@ function storeCanvas(nodes, edges) {
                 processData: false
             });
         }
-
-
-        self.nodesManager.save();
-        self.redraw();
+        self.nodesManager.save(function () {
+            self.edgesManager.save(self.redraw);
+        });
     }
 
     self.init = function (can) {
@@ -524,18 +596,33 @@ function viewModel() {
         { value: "entrada", text: "Entrada" },
         { value: "salida", text: "Salida" }
     ]);
-
+    self.articles = ko.observableArray();
+    Article.readAll().then(function (arts) {
+        self.articles.removeAll();
+        $(arts).each(function (i, e) {
+            self.articles.push(e);
+        })
+    });
+    self.articulos =
     Store.readAll().then(function (data) {
         data.forEach(function (store) {
-            Travel
-                .readAll()
-                .then(function (d) {
-                    d.forEach(function (travel) {
-                        actualTravel = travel;
-                    });
-                    actualStore = store;
-                    self.canvas.init(document.getElementById("canvas"));
-                });
+            actualStore = store;
+            self.canvas.init(document.getElementById("canvas"));
         });
     })
 }
+
+var getUrlParameter = function getUrlParameter(sParam) {
+    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
+    }
+};
