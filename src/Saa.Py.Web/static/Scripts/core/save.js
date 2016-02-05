@@ -228,6 +228,9 @@ function nodes(edges) {
         var nodos = Enumerable.From(self.nodes()).Select(function (n) {
             return {
                 almacen: n.store,
+                articulos: Enumerable.From(n.articles()).Select(function (na) {
+                    return na.article().pk;
+                }).ToArray(),
                 pk: n.pk,
                 tipo: n.type,
                 x: n.x,
