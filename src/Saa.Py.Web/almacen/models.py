@@ -101,8 +101,12 @@ class Viaje(models.Model):
         for articulo in articulos:
             nodos = Nodo.objects.filter(
                 nodo_articulo__articulo_id=articulo['pk'])
-            nodo_mas_cercano, peso = nodos[0], self.almacen.camino_mas_cercano(
-                start, nodos[0].pk)[3]
+            try:
+                nodo_mas_cercano, peso = nodos[0], self.almacen.camino_mas_cercano(
+                    start, nodos[0].pk)[3]
+            except:
+                import pdb; pdb.set_trace()  # XXX BREAKPOINT
+
             for nodo in nodos:
                 now_peso = self.almacen.camino_mas_cercano(start, nodo.pk)
                 now_peso_actual = now_peso[3]
@@ -127,12 +131,14 @@ class Viaje(models.Model):
         for key, node_key in enumerate(calculated_path[0]):
             try:
                 camino = Camino.objects.get(
-                    desde_id=node_key, hasta_id=calculated_path[0][key + 1])
+                    desde_id=calculated_path[0][key],
+                    hasta_id=calculated_path[0][key + 1])
                 edges.append(camino.pk)
             except:
                 try:
                     camino = Camino.objects.get(
-                        desde_id=node_key, hasta_id=calculated_path[0][key + 1])
+                        desde_id=calculated_path[0][key + 1],
+                        hasta_id=calculated_path[0][key])
                     edges.append(camino.pk)
                 except:
                     pass
