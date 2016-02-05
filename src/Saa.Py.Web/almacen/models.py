@@ -96,6 +96,30 @@ class Viaje(models.Model):
     def calculate_path(self, start, articulos):
         data = {}
         if len(articulos) == 0:
+            nodo_salida = Nodo.objects.get(tipo="salida")
+            calculated_path = self.almacen.camino_mas_cercano(
+                start,
+                nodo_salida.pk,
+            )
+            edges = []
+            for key, node_key in enumerate(calculated_path[0]):
+                try:
+                    camino = Camino.objects.get(
+                        desde_id=calculated_path[0][key],
+                        hasta_id=calculated_path[0][key + 1])
+                    edges.append(camino.pk)
+                except:
+                    try:
+                        camino = Camino.objects.get(
+                            desde_id=calculated_path[0][key + 1],
+                            hasta_id=calculated_path[0][key])
+                        edges.append(camino.pk)
+                    except:
+                        pass
+
+            self.path.append({
+                'articulo': None, 'camino': calculated_path[0],
+                'path': edges})
             self.save()
             return
         for articulo in articulos:
